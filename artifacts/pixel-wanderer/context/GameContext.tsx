@@ -77,19 +77,20 @@ const GameContext = createContext<GameContextType | null>(null);
 
 function pickOpportunity(
   dest: Destination,
-  usedIds: string[],
+  usedIds: string[] | undefined,
   fromCharacterIndex?: number,
 ): EarningOpportunity | null {
+  const safeUsed = usedIds ?? [];
   // Try character-specific opportunity first
   if (fromCharacterIndex !== undefined) {
     const charOpp = dest.people[fromCharacterIndex]?.earningOnTalk;
-    if (charOpp && !usedIds.includes(charOpp.id)) {
+    if (charOpp && !safeUsed.includes(charOpp.id)) {
       return charOpp;
     }
   }
   // Pick from destination pool
   const available = dest.earningOpportunities.filter(
-    (o) => !usedIds.includes(o.id),
+    (o) => !safeUsed.includes(o.id),
   );
   if (available.length === 0) return null;
   return available[Math.floor(Math.random() * available.length)];
@@ -108,14 +109,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.phase !== "title") {
+          // Merge with initialState so any new fields always have defaults
+          const merged: GameState = { ...initialState, ...parsed };
           // Re-attach image refs (can't serialize require())
-          if (parsed.currentDestination) {
+          if (merged.currentDestination) {
             const live = DESTINATIONS.find(
-              (d) => d.id === parsed.currentDestination.id,
+              (d) => d.id === (merged.currentDestination as any).id,
             );
-            if (live) parsed.currentDestination = live;
+            if (live) merged.currentDestination = live;
           }
-          setState(parsed);
+          setState(merged);
         }
       }
     } catch {}
