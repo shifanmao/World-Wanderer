@@ -20,7 +20,11 @@ export function FlyScreen() {
   const dest = state.currentDestination;
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+<<<<<<< HEAD
   const topPad = Platform.OS === "web" ? insets.top + 67 : insets.top;
+=======
+  const titleTopPad = Platform.OS === "web" ? 8 : insets.top;
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 
   const otherDestinations = DESTINATIONS.filter((d) => d.id !== dest?.id);
 
@@ -31,7 +35,11 @@ export function FlyScreen() {
         style={[
           styles.header,
           {
+<<<<<<< HEAD
             paddingTop: topPad + 8,
+=======
+            paddingTop: titleTopPad + 8,
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
             paddingHorizontal: 16,
             paddingBottom: 16,
             backgroundColor: colors.navyLight,

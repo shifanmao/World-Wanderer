@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useEffect, useRef } from "react";
+=======
+import React, { useEffect, useRef, useMemo } from "react";
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 import {
   Animated,
   Platform,
@@ -7,11 +11,19 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+<<<<<<< HEAD
+=======
+import { getTipActionById } from "@/constants/gameData";
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 import { useColors } from "@/hooks/useColors";
 import { PixelText } from "@/components/PixelText";
 import { PixelButton } from "@/components/PixelButton";
 import { BudgetBar } from "@/components/BudgetBar";
 import { EarningCard } from "@/components/EarningCard";
+<<<<<<< HEAD
+=======
+import { PixelatedImage } from "@/components/PixelatedImage";
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 import { DestinationScene } from "@/components/DestinationScene";
 import { useGame } from "@/context/GameContext";
 
@@ -34,13 +46,31 @@ export function ExploreScreen() {
   const earnedOpacity = useRef(new Animated.Value(0)).current;
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+<<<<<<< HEAD
   const topPad = Platform.OS === "web" ? insets.top + 67 : insets.top;
+=======
+  /** Keep city title flush to top (status bar / safe area only — no extra web gap) */
+  const titleTopPad = Platform.OS === "web" ? 8 : insets.top;
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 
   const itemCollected = dest
     ? state.collectedItems.includes(dest.collectibleName)
     : false;
   const canAffordLodging = (dest?.lodgingCost ?? 999) <= state.budget;
 
+<<<<<<< HEAD
+=======
+  const localTipMemories = useMemo(() => {
+    if (!dest) return [];
+    return state.collectedTipActionIds
+      .map((id) => getTipActionById(id))
+      .filter(
+        (meta): meta is NonNullable<typeof meta> =>
+          meta !== null && meta.destinationId === dest.id,
+      );
+  }, [dest, state.collectedTipActionIds]);
+
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   // Flash earned amount
   useEffect(() => {
     if (state.lastEarned !== null) {
@@ -66,6 +96,7 @@ export function ExploreScreen() {
 
   if (!dest) return null;
 
+<<<<<<< HEAD
   return (
     <View style={[styles.container, { backgroundColor: colors.navy }]}>
       {/* Scene header */}
@@ -78,6 +109,26 @@ export function ExploreScreen() {
               paddingTop: topPad + 4,
               paddingHorizontal: 16,
               backgroundColor: "rgba(10,14,26,0.5)",
+=======
+  const HEADER_SCENE_H = 148;
+  /** Title strip: safe top + padding + two lines */
+  const CITY_TITLE_BLOCK_H = 52;
+  const BUDGET_BAR_EST_H = 58;
+  const toastTop =
+    titleTopPad + CITY_TITLE_BLOCK_H + HEADER_SCENE_H + BUDGET_BAR_EST_H;
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.navy }]}>
+      {/* City name first (top), then scene — scroll list cannot sit over the title */}
+      <View style={styles.topFixedColumn}>
+        <View
+          style={[
+            styles.cityTitleStrip,
+            {
+              paddingTop: titleTopPad,
+              backgroundColor: colors.navyLight,
+              borderBottomColor: colors.border,
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
             },
           ]}
         >
@@ -88,16 +139,29 @@ export function ExploreScreen() {
             {dest.name}
           </PixelText>
         </View>
+<<<<<<< HEAD
       </View>
 
       <BudgetBar />
 
+=======
+        <View style={styles.sceneHeader}>
+          <DestinationScene destination={dest} showOverlay={false} pixelBlock={10} />
+        </View>
+        <BudgetBar />
+      </View>
+
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
       {/* Earned float toast */}
       {state.lastEarned !== null && (
         <Animated.View
           pointerEvents="none"
           style={[
             styles.earnedToast,
+<<<<<<< HEAD
+=======
+            { top: toastTop },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
             {
               opacity: earnedOpacity,
               transform: [{ translateY: earnedAnim }],
@@ -117,6 +181,10 @@ export function ExploreScreen() {
           { paddingBottom: bottomPad + 20 },
         ]}
         showsVerticalScrollIndicator={false}
+<<<<<<< HEAD
+=======
+        keyboardShouldPersistTaps="handled"
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
       >
         {/* Active earning opportunity */}
         {state.activeOpportunity && (
@@ -127,6 +195,42 @@ export function ExploreScreen() {
           />
         )}
 
+<<<<<<< HEAD
+=======
+        {localTipMemories.length > 0 && (
+          <View style={styles.section}>
+            <PixelText size="xs" color={colors.gold} bold>
+              LOCAL MEMORIES ({localTipMemories.length})
+            </PixelText>
+            <PixelText size="xs" color={colors.mutedForeground}>
+              From tips you followed in {dest.name}.
+            </PixelText>
+            <View style={styles.memoryGrid}>
+              {localTipMemories.map(({ action }) => (
+                <View
+                  key={action.id}
+                  style={[
+                    styles.memoryCard,
+                    { borderColor: colors.teal, backgroundColor: colors.navyLight },
+                  ]}
+                >
+                  <View style={styles.memoryThumb}>
+                    <PixelatedImage
+                      source={{ uri: action.rewardImageUri }}
+                      pixelBlock={8}
+                      rounded
+                    />
+                  </View>
+                  <PixelText size="xs" color={colors.parchment} bold align="center">
+                    {action.collectibleName}
+                  </PixelText>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         {/* Collectible */}
         {!itemCollected && (
           <View
@@ -233,6 +337,7 @@ export function ExploreScreen() {
 
         <PixelButton
           onPress={() => payLodging()}
+<<<<<<< HEAD
           variant={
             state.lodgedAtCurrent
               ? "ghost"
@@ -246,6 +351,13 @@ export function ExploreScreen() {
             ? `DAY ${state.dayCount} — LODGED FOR TONIGHT`
             : canAffordLodging
             ? `REST HERE  ($${dest.lodgingCost}/night → Day ${state.dayCount + 1})`
+=======
+          variant={canAffordLodging ? "secondary" : "ghost"}
+          disabled={!canAffordLodging}
+        >
+          {canAffordLodging
+            ? `REST ANOTHER NIGHT  ($${dest.lodgingCost} → Day ${state.dayCount + 1})`
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
             : `REST ($${dest.lodgingCost}) — INSUFFICIENT FUNDS`}
         </PixelButton>
 
@@ -279,6 +391,7 @@ export function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+<<<<<<< HEAD
   },
   sceneHeader: {
     position: "relative",
@@ -295,6 +408,30 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
+=======
+    overflow: "hidden",
+  },
+  /** Header does not shrink; ScrollView gets remaining height only */
+  topFixedColumn: {
+    flexShrink: 0,
+    zIndex: 2,
+    elevation: 4,
+  },
+  sceneHeader: {
+    height: 148,
+    overflow: "hidden",
+  },
+  cityTitleStrip: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 2,
+    gap: 4,
+  },
+  scroll: {
+    flex: 1,
+    minHeight: 0,
+    zIndex: 0,
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   },
   scrollContent: {
     padding: 16,
@@ -334,10 +471,35 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     padding: 12,
   },
+<<<<<<< HEAD
   earnedToast: {
     position: "absolute",
     alignSelf: "center",
     top: 210,
+=======
+  memoryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 8,
+  },
+  memoryCard: {
+    width: "47%",
+    borderWidth: 2,
+    padding: 8,
+    gap: 6,
+    alignItems: "center",
+  },
+  memoryThumb: {
+    width: "100%",
+    height: 56,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  earnedToast: {
+    position: "absolute",
+    alignSelf: "center",
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
     zIndex: 99,
     paddingHorizontal: 16,
     paddingVertical: 6,

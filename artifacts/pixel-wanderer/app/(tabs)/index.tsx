@@ -2,6 +2,10 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useGame } from "@/context/GameContext";
 import { TitleScreen } from "@/screens/TitleScreen";
+<<<<<<< HEAD
+=======
+import { HomeScreen } from "@/screens/HomeScreen";
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 import { ArrivingScreen } from "@/screens/ArrivingScreen";
 import { ExploreScreen } from "@/screens/ExploreScreen";
 import { NpcScreen } from "@/screens/NpcScreen";
@@ -18,6 +22,11 @@ export default function GameScreen() {
     switch (state.phase) {
       case "title":
         return <TitleScreen />;
+<<<<<<< HEAD
+=======
+      case "home":
+        return <HomeScreen />;
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
       case "arriving":
         return <ArrivingScreen />;
       case "exploring":

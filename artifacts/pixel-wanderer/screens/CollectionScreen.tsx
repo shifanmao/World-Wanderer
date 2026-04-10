@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React from "react";
+=======
+import React, { useMemo } from "react";
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 import {
   Platform,
   ScrollView,
@@ -6,10 +10,18 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+<<<<<<< HEAD
 import { useColors } from "@/hooks/useColors";
 import { PixelText } from "@/components/PixelText";
 import { PixelButton } from "@/components/PixelButton";
 import { DESTINATIONS } from "@/constants/gameData";
+=======
+import { PixelatedImage } from "@/components/PixelatedImage";
+import { useColors } from "@/hooks/useColors";
+import { PixelText } from "@/components/PixelText";
+import { PixelButton } from "@/components/PixelButton";
+import { DESTINATIONS, getTipActionById } from "@/constants/gameData";
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 import { useGame } from "@/context/GameContext";
 
 export function CollectionScreen() {
@@ -24,6 +36,17 @@ export function CollectionScreen() {
     (state.visitedDestinations.length / DESTINATIONS.length) * 100,
   );
 
+<<<<<<< HEAD
+=======
+  const tipMemories = useMemo(
+    () =>
+      state.collectedTipActionIds
+        .map((id) => getTipActionById(id))
+        .filter((m): m is NonNullable<typeof m> => m !== null),
+    [state.collectedTipActionIds],
+  );
+
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   return (
     <View style={[styles.container, { backgroundColor: colors.navy }]}>
       {/* Header */}
@@ -66,6 +89,48 @@ export function CollectionScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
+<<<<<<< HEAD
+=======
+        {tipMemories.length > 0 && (
+          <View style={styles.section}>
+            <PixelText size="xs" color={colors.gold} bold>
+              TIP MEMORIES ({tipMemories.length})
+            </PixelText>
+            <PixelText size="xs" color={colors.mutedForeground}>
+              Moments from following locals’ advice.
+            </PixelText>
+            <View style={styles.tipGrid}>
+              {tipMemories.map(({ action, destinationName, npcName }) => (
+                <View
+                  key={action.id}
+                  style={[
+                    styles.tipCard,
+                    {
+                      backgroundColor: colors.navyLight,
+                      borderColor: colors.gold,
+                    },
+                  ]}
+                >
+                  <View style={styles.tipImageWrap}>
+                    <PixelatedImage
+                      source={{ uri: action.rewardImageUri }}
+                      pixelBlock={8}
+                      rounded
+                    />
+                  </View>
+                  <PixelText size="xs" color={colors.parchment} bold>
+                    {action.collectibleName}
+                  </PixelText>
+                  <PixelText size="xs" color={colors.mutedForeground}>
+                    {destinationName} · {npcName}
+                  </PixelText>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         {/* Collectibles */}
         {state.collectedItems.length > 0 && (
           <View style={styles.section}>
@@ -208,6 +273,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
+<<<<<<< HEAD
+=======
+  tipGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 8,
+  },
+  tipCard: {
+    width: "47%",
+    borderWidth: 2,
+    padding: 8,
+    gap: 4,
+  },
+  tipImageWrap: {
+    width: "100%",
+    height: 72,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   destCard: {
     borderWidth: 2,
     padding: 12,

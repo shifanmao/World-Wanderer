@@ -1,8 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
+<<<<<<< HEAD
   ImageBackground,
   Platform,
+=======
+  Platform,
+  ScrollView,
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   StyleSheet,
   View,
 } from "react-native";
@@ -101,6 +106,7 @@ export function TitleScreen() {
         ))}
       </View>
 
+<<<<<<< HEAD
       <View
         style={[
           styles.content,
@@ -164,13 +170,85 @@ export function TitleScreen() {
           </PixelButton>
         </Animated.View>
 
+=======
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingTop: topPad + 32,
+            paddingBottom: bottomPad + 20,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.mainContent}>
+          {/* Logo area */}
+          <View style={styles.logoArea}>
+            <View
+              style={[
+                styles.globePixel,
+                { backgroundColor: colors.navyLight, borderColor: colors.teal },
+              ]}
+            >
+              <PixelText size="xxl" align="center">
+                🌍
+              </PixelText>
+            </View>
+
+            <PixelText size="xs" color={colors.teal} bold align="center">
+              A SIMULATED JOURNEY
+            </PixelText>
+            <PixelText
+              size="xxl"
+              color={colors.gold}
+              bold
+              align="center"
+              shadow
+            >
+              PIXEL
+            </PixelText>
+            <PixelText
+              size="xxl"
+              color={colors.parchment}
+              bold
+              align="center"
+              shadow
+            >
+              WANDERER
+            </PixelText>
+            <View
+              style={[styles.divider, { backgroundColor: colors.gold }]}
+            />
+            <PixelText size="sm" color={colors.parchment} align="center">
+              Explore the world. Meet strangers.
+            </PixelText>
+            <PixelText size="sm" color={colors.parchment} align="center">
+              Spend your budget wisely.
+            </PixelText>
+          </View>
+
+          {/* Start button */}
+          <Animated.View
+            style={[styles.startArea, { transform: [{ scale: pulseAnim }] }]}
+          >
+            <PixelButton onPress={startGame} variant="primary">
+              BEGIN JOURNEY
+            </PixelButton>
+          </Animated.View>
+        </View>
+
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         {/* Footer */}
         <View style={styles.footer}>
           <PixelText size="xs" color={colors.mutedForeground} align="center">
             Budget: $2,000 · 8 Destinations · Infinite Stories
           </PixelText>
         </View>
+<<<<<<< HEAD
       </View>
+=======
+      </ScrollView>
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
     </Animated.View>
   );
 }
@@ -183,9 +261,20 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   content: {
+<<<<<<< HEAD
     flex: 1,
     paddingHorizontal: 32,
     justifyContent: "space-between",
+=======
+    flexGrow: 1,
+    paddingHorizontal: 32,
+    justifyContent: "space-between",
+    minHeight: "100%",
+  },
+  mainContent: {
+    alignItems: "center",
+    gap: 20,
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   },
   logoArea: {
     alignItems: "center",
@@ -207,6 +296,10 @@ const styles = StyleSheet.create({
   startArea: {
     alignItems: "center",
     paddingHorizontal: 20,
+<<<<<<< HEAD
+=======
+    width: "100%",
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   },
   footer: {
     alignItems: "center",

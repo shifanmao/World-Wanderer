@@ -4,9 +4,29 @@ export interface Character {
   sprite: string;
   dialogues: string[];
   tip?: string;
+<<<<<<< HEAD
   earningOnTalk?: EarningOpportunity;
 }
 
+=======
+  tipAction?: TravelerTipAction;
+  earningOnTalk?: EarningOpportunity;
+}
+
+export interface TravelerTipAction {
+  id: string;
+  title: string;
+  description: string;
+  cost: number;
+  icon: string;
+  outcome: string;
+  /** Shown in journal / home as the collectible label */
+  collectibleName: string;
+  /** Memory snapshot after completing the tip (remote URL) */
+  rewardImageUri: string;
+}
+
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 export interface EarningOpportunity {
   id: string;
   type: "scenic" | "work" | "encounter";
@@ -99,8 +119,26 @@ export const DESTINATIONS: Destination[] = [
           "Ah, bienvenue! You have arrived at the most beautiful city in the world.",
           "The croissants at the corner bakery are worth every centime. Try one before you leave!",
           "Many travelers pass through Paris... but few truly see it. Walk slowly, mon ami.",
+<<<<<<< HEAD
         ],
         tip: "Stay an extra night — the Louvre alone takes two days.",
+=======
+          "If rain starts, don't hide from it. Paris in the rain is its own postcard.",
+          "When the city feels loud, cross a bridge and watch the river for five minutes.",
+        ],
+        tip: "Stay an extra night — the Louvre alone takes two days.",
+        tipAction: {
+          id: "paris_louvre_pass",
+          title: "Buy a Louvre Night Pass",
+          description: "Skip the daytime crowds and explore after-hours galleries.",
+          cost: 40,
+          icon: "🖼️",
+          outcome: "You wander quiet halls and leave with a sketchbook full of ideas.",
+          collectibleName: "Louvre Night Memory",
+          rewardImageUri:
+            "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=80",
+        },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         earningOnTalk: {
           id: "pierre_work",
           type: "work",
@@ -190,8 +228,26 @@ export const DESTINATIONS: Destination[] = [
           "Welcome to Tokyo. Please enjoy our city.",
           "The ramen in Shibuya — go after midnight when the salarymen arrive.",
           "Quiet hours are between 10pm and 6am. We appreciate consideration.",
+<<<<<<< HEAD
         ],
         tip: "Get a Suica card on day one. The trains go everywhere.",
+=======
+          "If the city overwhelms you, find a tiny shrine tucked between buildings.",
+          "Always stand on one side of the escalator unless locals tell you otherwise.",
+        ],
+        tip: "Get a Suica card on day one. The trains go everywhere.",
+        tipAction: {
+          id: "tokyo_suica_card",
+          title: "Purchase a Suica Card",
+          description: "Preload transit fare and move through the city like a local.",
+          cost: 20,
+          icon: "🚉",
+          outcome: "Station gates open instantly, and your travel day becomes effortless.",
+          collectibleName: "Suica Card Memory",
+          rewardImageUri:
+            "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=80",
+        },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         earningOnTalk: {
           id: "kenji_translation",
           type: "encounter",
@@ -272,8 +328,26 @@ export const DESTINATIONS: Destination[] = [
           "The sun rises differently here. It is why the Inca chose this place.",
           "Coca tea for altitude sickness. Drink it slowly. Rest the first day.",
           "The mountain behind you — Huayna Picchu — very few climb it. If you are able, do it.",
+<<<<<<< HEAD
         ],
         tip: "Buy the Huayna Picchu permit in advance. They sell out months ahead.",
+=======
+          "Stone by stone, these terraces still teach patience to everyone who visits.",
+          "Clouds move fast here. The ruins can vanish and return in a single minute.",
+        ],
+        tip: "Buy the Huayna Picchu permit in advance. They sell out months ahead.",
+        tipAction: {
+          id: "machu_permit",
+          title: "Buy Huayna Picchu Permit",
+          description: "Secure an early climbing slot before tickets run out.",
+          cost: 35,
+          icon: "⛰️",
+          outcome: "Your summit view is breathtaking, and the whole valley opens below you.",
+          collectibleName: "Huayna Summit Memory",
+          rewardImageUri:
+            "https://images.unsplash.com/photo-1587595431973-160bd0cccb61?auto=format&fit=crop&w=1200&q=80",
+        },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         earningOnTalk: {
           id: "inti_guide",
           type: "encounter",
@@ -363,8 +437,26 @@ export const DESTINATIONS: Destination[] = [
           "The pyramids are 4,500 years old. Let that number sit in your chest for a moment.",
           "Negotiate. Always negotiate. It is part of the conversation here.",
           "Khan el-Khalili bazaar at dawn — no tourists, only merchants setting up.",
+<<<<<<< HEAD
         ],
         tip: "Early morning is the only time to see the Sphinx without crowds.",
+=======
+          "The desert teaches scale. You realize how small your worries are out there.",
+          "In Cairo, history does not live in museums only. It lives on every street corner.",
+        ],
+        tip: "Early morning is the only time to see the Sphinx without crowds.",
+        tipAction: {
+          id: "cairo_sunrise_driver",
+          title: "Hire a Sunrise Driver",
+          description: "Book a predawn ride for a crowd-free Sphinx visit.",
+          cost: 30,
+          icon: "🐪",
+          outcome: "The site is nearly empty, and the first light makes the stone glow gold.",
+          collectibleName: "Sphinx Sunrise Memory",
+          rewardImageUri:
+            "https://images.unsplash.com/photo-1539650116574-75c0c6d73a6e?auto=format&fit=crop&w=1200&q=80",
+        },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         earningOnTalk: {
           id: "omar_history_tour",
           type: "encounter",
@@ -445,8 +537,26 @@ export const DESTINATIONS: Destination[] = [
           "I tend the moss garden here. It takes twenty years to look like nothing.",
           "The tea ceremony is not about tea. It is about presence.",
           "Arashiyama bamboo grove — go before seven in the morning. Go alone.",
+<<<<<<< HEAD
         ],
         tip: "Gion district after dark — geiko lanterns light the alleys.",
+=======
+          "Kyoto rewards quiet footsteps. The city notices when you move gently.",
+          "A simple bowl of soba after rain can feel like a full ritual.",
+        ],
+        tip: "Gion district after dark — geiko lanterns light the alleys.",
+        tipAction: {
+          id: "kyoto_evening_walk",
+          title: "Join a Gion Evening Walk",
+          description: "Take a guided twilight route through Kyoto's old districts.",
+          cost: 28,
+          icon: "🏮",
+          outcome: "Lantern-lit lanes and whispered stories make the district unforgettable.",
+          collectibleName: "Gion Lantern Memory",
+          rewardImageUri:
+            "https://images.unsplash.com/photo-1493976040374-85c8e8c0c7e0?auto=format&fit=crop&w=1200&q=80",
+        },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         earningOnTalk: {
           id: "hiroshi_moss",
           type: "work",
@@ -464,7 +574,13 @@ export const DESTINATIONS: Destination[] = [
     name: "Santorini",
     country: "Greece",
     continent: "Europe",
+<<<<<<< HEAD
     image: null,
+=======
+    image: {
+      uri: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1400&q=80",
+    },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
     description:
       "White-washed villages cling to a volcanic caldera rim. The Aegean shimmers endlessly below.",
     lodgingCost: 150,
@@ -517,8 +633,26 @@ export const DESTINATIONS: Destination[] = [
           "My grandfather fished these waters. I run the taverna now.",
           "The sunset from Oia — people weep. I have seen it a thousand times and still I watch.",
           "Swim in the hot springs near the volcano. Strange feeling, like the earth is alive.",
+<<<<<<< HEAD
         ],
         tip: "Book a boat tour to the volcanic hot springs — only around $25.",
+=======
+          "White walls, blue domes, black volcanic stone — this island is all contrast.",
+          "If the wind picks up, stay near the caldera side. The views are worth it.",
+        ],
+        tip: "Book a boat tour to the volcanic hot springs — only around $25.",
+        tipAction: {
+          id: "santorini_boat_tour",
+          title: "Book Volcanic Boat Tour",
+          description: "Reserve a small-boat trip to the hot springs and caldera cliffs.",
+          cost: 25,
+          icon: "⛵",
+          outcome: "You sail through cobalt water and soak in mineral springs at sunset.",
+          collectibleName: "Caldera Boat Memory",
+          rewardImageUri:
+            "https://images.unsplash.com/photo-1613395877344-13d4c79e4284?auto=format&fit=crop&w=1200&q=80",
+        },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         earningOnTalk: {
           id: "stavros_kitchen",
           type: "work",
@@ -598,8 +732,26 @@ export const DESTINATIONS: Destination[] = [
           "The medina is a maze on purpose. It was built to confuse invaders.",
           "My family has made leather here for four generations. The smell never leaves.",
           "Djemaa el-Fna at night — snake charmers, storytellers, the smoke of a hundred fires.",
+<<<<<<< HEAD
         ],
         tip: "Stay in a riad. Hotels here miss the whole point of the city.",
+=======
+          "Bargain with a smile. In Marrakech, it is part of the music.",
+          "Drink mint tea slowly; rushing it offends both tea and host.",
+        ],
+        tip: "Stay in a riad. Hotels here miss the whole point of the city.",
+        tipAction: {
+          id: "marrakech_riad",
+          title: "Book a Riad Courtyard Room",
+          description: "Move into a family-run riad inside the old medina walls.",
+          cost: 32,
+          icon: "🕌",
+          outcome: "You wake to birdsong in a tiled courtyard and feel the city differently.",
+          collectibleName: "Riad Courtyard Memory",
+          rewardImageUri:
+            "https://images.unsplash.com/photo-1597212618440-806262de4f6b?auto=format&fit=crop&w=1200&q=80",
+        },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         earningOnTalk: {
           id: "hassan_leather",
           type: "work",
@@ -679,8 +831,26 @@ export const DESTINATIONS: Destination[] = [
           "Icelanders do not believe in elves officially. We also do not build roads through their hills.",
           "The Blue Lagoon is for tourists. Go to the Secret Lagoon in Flúðir instead.",
           "Northern lights forecast apps lie. Go out at midnight and look anyway.",
+<<<<<<< HEAD
         ],
         tip: "Rent a car. The Ring Road connects everything that matters.",
+=======
+          "The weather changes every hour. Carry layers even if the sky looks kind.",
+          "Hot dogs here are oddly excellent. Do not ask why, just trust me.",
+        ],
+        tip: "Rent a car. The Ring Road connects everything that matters.",
+        tipAction: {
+          id: "reykjavik_rental_car",
+          title: "Rent a Ring Road Car",
+          description: "Split a compact car rental and unlock remote Iceland sights.",
+          cost: 45,
+          icon: "🚙",
+          outcome: "Waterfalls, lava fields, and empty roads turn your trip into an expedition.",
+          collectibleName: "Ring Road Memory",
+          rewardImageUri:
+            "https://images.unsplash.com/photo-1504893524553-b855bce32c67?auto=format&fit=crop&w=1200&q=80",
+        },
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         earningOnTalk: {
           id: "sigrid_research",
           type: "encounter",
@@ -699,6 +869,32 @@ export const getDestinationById = (id: string): Destination | undefined => {
   return DESTINATIONS.find((d) => d.id === id);
 };
 
+<<<<<<< HEAD
+=======
+export function getTipActionById(
+  tipId: string,
+): {
+  action: TravelerTipAction;
+  destinationId: string;
+  destinationName: string;
+  npcName: string;
+} | null {
+  for (const d of DESTINATIONS) {
+    for (const p of d.people) {
+      if (p.tipAction?.id === tipId) {
+        return {
+          action: p.tipAction,
+          destinationId: d.id,
+          destinationName: d.name,
+          npcName: p.name,
+        };
+      }
+    }
+  }
+  return null;
+}
+
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 export const getRandomDestination = (): Destination => {
   return DESTINATIONS[Math.floor(Math.random() * DESTINATIONS.length)];
 };

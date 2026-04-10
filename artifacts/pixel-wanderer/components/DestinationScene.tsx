@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
+<<<<<<< HEAD
   Dimensions,
   ImageBackground,
   StyleSheet,
@@ -12,10 +13,26 @@ import type { Destination } from "@/constants/gameData";
 
 const { width, height } = Dimensions.get("window");
 
+=======
+  StyleSheet,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/hooks/useColors";
+import { PixelText } from "./PixelText";
+import { PixelatedImage } from "./PixelatedImage";
+import type { Destination } from "@/constants/gameData";
+
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 interface DestinationSceneProps {
   destination: Destination;
   onReady?: () => void;
   showOverlay?: boolean;
+<<<<<<< HEAD
+=======
+  /** Higher = more pixelated city art (fewer samples). Default tuned for headers. */
+  pixelBlock?: number;
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 }
 
 const PLACEHOLDER_COLORS: Record<string, string[]> = {
@@ -54,8 +71,15 @@ export function DestinationScene({
   destination,
   onReady,
   showOverlay = true,
+<<<<<<< HEAD
 }: DestinationSceneProps) {
   const colors = useColors();
+=======
+  pixelBlock = 7,
+}: DestinationSceneProps) {
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const scanlineAnim = useRef(new Animated.Value(0)).current;
@@ -86,10 +110,17 @@ export function DestinationScene({
   }, [destination.id]);
 
   const SceneContent = destination.image ? (
+<<<<<<< HEAD
     <ImageBackground
       source={destination.image}
       style={styles.image}
       resizeMode="cover"
+=======
+    <PixelatedImage
+      source={destination.image}
+      pixelBlock={pixelBlock}
+      style={styles.image}
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
     />
   ) : (
     <PlaceholderScene destination={destination} />
@@ -118,7 +149,19 @@ export function DestinationScene({
       </View>
 
       {showOverlay && (
+<<<<<<< HEAD
         <View style={[styles.overlay, { backgroundColor: "rgba(10,14,26,0.65)" }]}>
+=======
+        <View
+          style={[
+            styles.overlay,
+            {
+              backgroundColor: "rgba(10,14,26,0.65)",
+              paddingTop: insets.top + 12,
+            },
+          ]}
+        >
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
           <Animated.View style={[styles.labelContainer, { transform: [{ translateY: slideAnim }] }]}>
             <View style={[styles.labelBox, { backgroundColor: colors.navy, borderColor: colors.gold }]}>
               <PixelText size="xs" color={colors.gold} bold align="center">
@@ -166,9 +209,15 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
+<<<<<<< HEAD
     justifyContent: "flex-end",
     paddingBottom: 40,
     paddingHorizontal: 20,
+=======
+    justifyContent: "flex-start",
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   },
   labelContainer: {
     alignItems: "center",

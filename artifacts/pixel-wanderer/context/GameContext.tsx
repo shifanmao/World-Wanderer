@@ -11,10 +11,22 @@ import {
   STARTING_BUDGET,
   getRandomDestination,
 } from "@/constants/gameData";
+<<<<<<< HEAD
 import type { Destination, EarningOpportunity } from "@/constants/gameData";
 
 export type GamePhase =
   | "title"
+=======
+import type {
+  Destination,
+  EarningOpportunity,
+  TravelerTipAction,
+} from "@/constants/gameData";
+
+export type GamePhase =
+  | "title"
+  | "home"
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   | "arriving"
   | "exploring"
   | "npc_dialogue"
@@ -31,10 +43,33 @@ export interface GameState {
   dayCount: number;
   currentNpcIndex: number;
   currentDialogueIndex: number;
+<<<<<<< HEAD
   lodgedAtCurrent: boolean;
   activeOpportunity: EarningOpportunity | null;
   usedOpportunityIds: string[];
   lastEarned: number | null;
+=======
+  activeOpportunity: EarningOpportunity | null;
+  usedOpportunityIds: string[];
+  lastEarned: number | null;
+  currentDialogueOffset: number;
+  lastTipActionResult: {
+    title: string;
+    detail: string;
+    icon: string;
+  } | null;
+  /** After paying for a tip action, show this until the player taps through */
+  pendingTipReward: {
+    tipId: string;
+    imageUri: string;
+    title: string;
+    outcome: string;
+    collectibleName: string;
+    destinationId: string;
+  } | null;
+  /** Tip action ids the player has completed (journal + home screen) */
+  collectedTipActionIds: string[];
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 }
 
 interface GameContextType {
@@ -54,6 +89,12 @@ interface GameContextType {
   dismissOpportunity: () => void;
   rollOpportunity: (fromCharacterIndex?: number) => void;
   clearLastEarned: () => void;
+<<<<<<< HEAD
+=======
+  performTipAction: () => boolean;
+  clearTipActionResult: () => void;
+  dismissTipReward: () => void;
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 }
 
 const STORAGE_KEY = "@pixel_wanderer_save";
@@ -67,10 +108,20 @@ const initialState: GameState = {
   dayCount: 1,
   currentNpcIndex: 0,
   currentDialogueIndex: 0,
+<<<<<<< HEAD
   lodgedAtCurrent: false,
   activeOpportunity: null,
   usedOpportunityIds: [],
   lastEarned: null,
+=======
+  activeOpportunity: null,
+  usedOpportunityIds: [],
+  lastEarned: null,
+  currentDialogueOffset: 0,
+  lastTipActionResult: null,
+  pendingTipReward: null,
+  collectedTipActionIds: [],
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 };
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -111,6 +162,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         if (parsed.phase !== "title") {
           // Merge with initialState so any new fields always have defaults
           const merged: GameState = { ...initialState, ...parsed };
+<<<<<<< HEAD
+=======
+          if (!Array.isArray(merged.collectedTipActionIds)) {
+            merged.collectedTipActionIds = [];
+          }
+          merged.pendingTipReward = null;
+          delete (merged as Record<string, unknown>).lodgedAtCurrent;
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
           // Re-attach image refs (can't serialize require())
           if (merged.currentDestination) {
             const live = DESTINATIONS.find(
@@ -152,7 +211,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const dest = getRandomDestination();
     const newState: GameState = {
       ...initialState,
+<<<<<<< HEAD
       phase: "arriving",
+=======
+      phase: "home",
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
       currentDestination: dest,
       visitedDestinations: [dest.id],
       budget: STARTING_BUDGET,
@@ -173,7 +236,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       updateState({
         phase: "exploring",
         currentDestination: dest,
+<<<<<<< HEAD
         lodgedAtCurrent: false,
+=======
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         activeOpportunity: opportunity,
         lastEarned: null,
         visitedDestinations: state.visitedDestinations.includes(dest.id)
@@ -185,7 +251,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   );
 
   const payLodging = useCallback((): boolean => {
+<<<<<<< HEAD
     if (state.lodgedAtCurrent) return true;
+=======
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
     const cost = state.currentDestination?.lodgingCost ?? 999;
     if (state.budget < cost) return false;
 
@@ -202,7 +271,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     updateState({
       budget: state.budget - cost,
       dayCount: newDay,
+<<<<<<< HEAD
       lodgedAtCurrent: true,
+=======
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
       activeOpportunity: opportunity,
       lastEarned: null,
     });
@@ -223,7 +295,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         phase: "arriving",
         budget: state.budget - cost,
         currentDestination: dest,
+<<<<<<< HEAD
         lodgedAtCurrent: false,
+=======
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         activeOpportunity: null,
         lastEarned: null,
         visitedDestinations: alreadyVisited
@@ -243,9 +318,20 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         phase: "npc_dialogue",
         currentNpcIndex: npcIndex,
         currentDialogueIndex: 0,
+<<<<<<< HEAD
       });
     },
     [updateState],
+=======
+        currentDialogueOffset: Math.floor(
+          Math.random() * (state.currentDestination?.people[npcIndex]?.dialogues.length ?? 1),
+        ),
+        lastTipActionResult: null,
+        pendingTipReward: null,
+      });
+    },
+    [state.currentDestination, updateState],
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   );
 
   const advanceDialogue = useCallback(() => {
@@ -270,6 +356,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       updateState({
         phase: "exploring",
         activeOpportunity: opportunity ?? state.activeOpportunity,
+<<<<<<< HEAD
+=======
+        lastTipActionResult: null,
+        pendingTipReward: null,
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
       });
     } else {
       updateState({ currentDialogueIndex: nextIndex });
@@ -317,6 +408,70 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     updateState({ lastEarned: null });
   }, [updateState]);
 
+<<<<<<< HEAD
+=======
+  const performTipAction = useCallback((): boolean => {
+    const character = state.currentDestination?.people[state.currentNpcIndex];
+    const action: TravelerTipAction | undefined = character?.tipAction;
+    const dest = state.currentDestination;
+    if (!action || !dest) return false;
+
+    if (state.collectedTipActionIds.includes(action.id)) {
+      updateState({
+        lastTipActionResult: {
+          title: "Already in your journal",
+          detail: `You already collected "${action.collectibleName}".`,
+          icon: "📓",
+        },
+      });
+      return false;
+    }
+
+    if (state.budget < action.cost) {
+      updateState({
+        lastTipActionResult: {
+          title: "Not enough budget",
+          detail: `You need $${action.cost} for ${action.title}.`,
+          icon: "⚠️",
+        },
+      });
+      return false;
+    }
+
+    updateState({
+      budget: state.budget - action.cost,
+      lastTipActionResult: null,
+      pendingTipReward: {
+        tipId: action.id,
+        imageUri: action.rewardImageUri,
+        title: action.title,
+        outcome: action.outcome,
+        collectibleName: action.collectibleName,
+        destinationId: dest.id,
+      },
+    });
+    return true;
+  }, [state, updateState]);
+
+  const clearTipActionResult = useCallback(() => {
+    updateState({ lastTipActionResult: null });
+  }, [updateState]);
+
+  const dismissTipReward = useCallback(() => {
+    const pending = state.pendingTipReward;
+    if (!pending) return;
+    const already = state.collectedTipActionIds.includes(pending.tipId);
+    updateState({
+      phase: "exploring",
+      pendingTipReward: null,
+      lastTipActionResult: null,
+      collectedTipActionIds: already
+        ? state.collectedTipActionIds
+        : [...state.collectedTipActionIds, pending.tipId],
+    });
+  }, [state, updateState]);
+
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
   const collectItem = useCallback(() => {
     const item = state.currentDestination?.collectibleName;
     if (!item || state.collectedItems.includes(item)) return;
@@ -330,8 +485,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, [updateState]);
 
   const backToExploring = useCallback(() => {
+<<<<<<< HEAD
     updateState({ phase: "exploring" });
   }, [updateState]);
+=======
+    if (state.pendingTipReward) {
+      dismissTipReward();
+      return;
+    }
+    updateState({ phase: "exploring" });
+  }, [state.pendingTipReward, dismissTipReward, updateState]);
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
 
   const resetGame = useCallback(() => {
     setState(initialState);
@@ -364,6 +528,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         dismissOpportunity,
         rollOpportunity,
         clearLastEarned,
+<<<<<<< HEAD
+=======
+        performTipAction,
+        clearTipActionResult,
+        dismissTipReward,
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
       }}
     >
       {children}

@@ -86,6 +86,10 @@ export function ArrivingScreen() {
           destination={dest}
           onReady={handleSceneReady}
           showOverlay
+<<<<<<< HEAD
+=======
+          pixelBlock={10}
+>>>>>>> 9f641e7 (Cursor changes with some major experience changes.)
         />
       </View>
 
