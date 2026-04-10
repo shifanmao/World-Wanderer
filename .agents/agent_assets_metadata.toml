@@ -1,0 +1,26 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "cxz5raJ8OHlobVCiHsQ2c"
+uri = "file://artifacts/pixel-wanderer/assets/images/icon.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "NEzFboaVAcozjHkEsQMox"
+uri = "file://artifacts/pixel-wanderer/assets/images/paris.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "eZoPAx4vS6TlIndG1zVlE"
+uri = "file://artifacts/pixel-wanderer/assets/images/tokyo.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "aGaUNkMBV8YW24CnkXz55"
+uri = "file://artifacts/pixel-wanderer/assets/images/macchu_picchu.png"
+type = "image"
+title = "generated_image"
