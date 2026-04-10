@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/"
+title = "Pixel Wanderer"
+version = "1.0.0"
+id = "artifacts/pixel-wanderer"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/" ]
+localPort = 18805
+
+[services.development]
+run = "pnpm --filter @workspace/pixel-wanderer run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/pixel-wanderer", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/pixel-wanderer", "run", "serve" ]
+
+[services.env]
+PORT = "18805"
+BASE_PATH = "/"
