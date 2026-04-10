@@ -170,8 +170,8 @@ export function ArrivingScreen() {
               <PixelText size="sm" color={colors.gold} bold>${dest.lodgingCost}/night</PixelText>
             </View>
             <View style={[styles.statChip, { backgroundColor: colors.navyLight, borderColor: colors.border }]}>
-              <PixelText size="xs" color={colors.mutedForeground}>NPCs</PixelText>
-              <PixelText size="sm" color={colors.tealLight} bold>{dest.npcs.length} locals</PixelText>
+              <PixelText size="xs" color={colors.mutedForeground}>PEOPLE</PixelText>
+              <PixelText size="sm" color={colors.tealLight} bold>{dest.people.length} to meet</PixelText>
             </View>
           </View>
           <PixelButton onPress={handleContinue} variant="primary">

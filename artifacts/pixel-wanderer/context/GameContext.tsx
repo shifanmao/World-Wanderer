@@ -11,7 +11,7 @@ import {
   STARTING_BUDGET,
   getRandomDestination,
 } from "@/constants/gameData";
-import type { Destination } from "@/constants/gameData";
+import type { Destination, EarningOpportunity } from "@/constants/gameData";
 
 export type GamePhase =
   | "title"
@@ -32,6 +32,9 @@ export interface GameState {
   currentNpcIndex: number;
   currentDialogueIndex: number;
   lodgedAtCurrent: boolean;
+  activeOpportunity: EarningOpportunity | null;
+  usedOpportunityIds: string[];
+  lastEarned: number | null;
 }
 
 interface GameContextType {
@@ -40,13 +43,17 @@ interface GameContextType {
   arriveAtDestination: (dest: Destination) => void;
   payLodging: () => boolean;
   flyTo: (destId: string) => boolean;
-  talkToNpc: (npcIndex: number) => void;
+  talkToCharacter: (npcIndex: number) => void;
   advanceDialogue: () => void;
   collectItem: () => void;
   goToCollection: () => void;
   backToExploring: () => void;
   resetGame: () => void;
   setPhase: (phase: GamePhase) => void;
+  acceptOpportunity: () => void;
+  dismissOpportunity: () => void;
+  rollOpportunity: (fromCharacterIndex?: number) => void;
+  clearLastEarned: () => void;
 }
 
 const STORAGE_KEY = "@pixel_wanderer_save";
@@ -61,9 +68,32 @@ const initialState: GameState = {
   currentNpcIndex: 0,
   currentDialogueIndex: 0,
   lodgedAtCurrent: false,
+  activeOpportunity: null,
+  usedOpportunityIds: [],
+  lastEarned: null,
 };
 
 const GameContext = createContext<GameContextType | null>(null);
+
+function pickOpportunity(
+  dest: Destination,
+  usedIds: string[],
+  fromCharacterIndex?: number,
+): EarningOpportunity | null {
+  // Try character-specific opportunity first
+  if (fromCharacterIndex !== undefined) {
+    const charOpp = dest.people[fromCharacterIndex]?.earningOnTalk;
+    if (charOpp && !usedIds.includes(charOpp.id)) {
+      return charOpp;
+    }
+  }
+  // Pick from destination pool
+  const available = dest.earningOpportunities.filter(
+    (o) => !usedIds.includes(o.id),
+  );
+  if (available.length === 0) return null;
+  return available[Math.floor(Math.random() * available.length)];
+}
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<GameState>(initialState);
@@ -78,6 +108,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.phase !== "title") {
+          // Re-attach image refs (can't serialize require())
+          if (parsed.currentDestination) {
+            const live = DESTINATIONS.find(
+              (d) => d.id === parsed.currentDestination.id,
+            );
+            if (live) parsed.currentDestination = live;
+          }
           setState(parsed);
         }
       }
@@ -86,7 +123,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const save = useCallback(async (newState: GameState) => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+      // Don't serialize the image ref
+      const toSave = {
+        ...newState,
+        currentDestination: newState.currentDestination
+          ? { ...newState.currentDestination, image: null }
+          : null,
+      };
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     } catch {}
   }, []);
 
@@ -116,35 +160,55 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const arriveAtDestination = useCallback(
     (dest: Destination) => {
+      // Roll for an immediate opportunity on arrival (40% chance)
+      const roll = Math.random();
+      const opportunity =
+        roll < 0.4
+          ? pickOpportunity(dest, state.usedOpportunityIds)
+          : null;
+
       updateState({
         phase: "exploring",
         currentDestination: dest,
         lodgedAtCurrent: false,
+        activeOpportunity: opportunity,
+        lastEarned: null,
         visitedDestinations: state.visitedDestinations.includes(dest.id)
           ? state.visitedDestinations
           : [...state.visitedDestinations, dest.id],
       });
     },
-    [state.visitedDestinations, updateState],
+    [state.visitedDestinations, state.usedOpportunityIds, updateState],
   );
 
   const payLodging = useCallback((): boolean => {
     if (state.lodgedAtCurrent) return true;
-    if (state.budget < (state.currentDestination?.lodgingCost ?? 999)) {
-      return false;
-    }
+    const cost = state.currentDestination?.lodgingCost ?? 999;
+    if (state.budget < cost) return false;
+
+    const newDay = state.dayCount + 1;
+    const newUsedIds = state.usedOpportunityIds;
+
+    // Roll for new opportunity next morning (55% chance)
+    const roll = Math.random();
+    const opportunity =
+      roll < 0.55 && state.currentDestination
+        ? pickOpportunity(state.currentDestination, newUsedIds)
+        : null;
+
     updateState({
-      budget: state.budget - (state.currentDestination?.lodgingCost ?? 0),
-      dayCount: state.dayCount + 1,
+      budget: state.budget - cost,
+      dayCount: newDay,
       lodgedAtCurrent: true,
+      activeOpportunity: opportunity,
+      lastEarned: null,
     });
     return true;
   }, [state, updateState]);
 
   const flyTo = useCallback(
     (destId: string): boolean => {
-      const cost =
-        state.currentDestination?.flightCosts[destId] ?? 999999;
+      const cost = state.currentDestination?.flightCosts[destId] ?? 999999;
       if (state.budget < cost) return false;
 
       const dest = DESTINATIONS.find((d) => d.id === destId);
@@ -157,6 +221,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         budget: state.budget - cost,
         currentDestination: dest,
         lodgedAtCurrent: false,
+        activeOpportunity: null,
+        lastEarned: null,
         visitedDestinations: alreadyVisited
           ? state.visitedDestinations
           : [...state.visitedDestinations, destId],
@@ -168,7 +234,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     [state, save],
   );
 
-  const talkToNpc = useCallback(
+  const talkToCharacter = useCallback(
     (npcIndex: number) => {
       updateState({
         phase: "npc_dialogue",
@@ -180,19 +246,73 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   );
 
   const advanceDialogue = useCallback(() => {
-    const npc =
-      state.currentDestination?.npcs[state.currentNpcIndex];
-    if (!npc) {
+    const character =
+      state.currentDestination?.people[state.currentNpcIndex];
+    if (!character) {
       updateState({ phase: "exploring" });
       return;
     }
     const nextIndex = state.currentDialogueIndex + 1;
-    if (nextIndex >= npc.dialogues.length) {
-      updateState({ phase: "exploring" });
+    if (nextIndex >= character.dialogues.length) {
+      // End of dialogue — 60% chance to surface a character-specific earning opportunity
+      const roll = Math.random();
+      const opportunity =
+        roll < 0.6 && state.currentDestination
+          ? pickOpportunity(
+              state.currentDestination,
+              state.usedOpportunityIds,
+              state.currentNpcIndex,
+            )
+          : null;
+      updateState({
+        phase: "exploring",
+        activeOpportunity: opportunity ?? state.activeOpportunity,
+      });
     } else {
       updateState({ currentDialogueIndex: nextIndex });
     }
   }, [state, updateState]);
+
+  const rollOpportunity = useCallback(
+    (fromCharacterIndex?: number) => {
+      if (!state.currentDestination) return;
+      const roll = Math.random();
+      if (roll < 0.45) {
+        const opportunity = pickOpportunity(
+          state.currentDestination,
+          state.usedOpportunityIds,
+          fromCharacterIndex,
+        );
+        if (opportunity) updateState({ activeOpportunity: opportunity });
+      }
+    },
+    [state, updateState],
+  );
+
+  const acceptOpportunity = useCallback(() => {
+    const opp = state.activeOpportunity;
+    if (!opp) return;
+    updateState({
+      budget: state.budget + opp.earnings,
+      usedOpportunityIds: [...state.usedOpportunityIds, opp.id],
+      activeOpportunity: null,
+      lastEarned: opp.earnings,
+    });
+  }, [state, updateState]);
+
+  const dismissOpportunity = useCallback(() => {
+    const opp = state.activeOpportunity;
+    updateState({
+      activeOpportunity: null,
+      usedOpportunityIds: opp
+        ? [...state.usedOpportunityIds, opp.id]
+        : state.usedOpportunityIds,
+    });
+  }, [state, updateState]);
+
+  const clearLastEarned = useCallback(() => {
+    updateState({ lastEarned: null });
+  }, [updateState]);
 
   const collectItem = useCallback(() => {
     const item = state.currentDestination?.collectibleName;
@@ -230,13 +350,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         arriveAtDestination,
         payLodging,
         flyTo,
-        talkToNpc,
+        talkToCharacter,
         advanceDialogue,
         collectItem,
         goToCollection,
         backToExploring,
         resetGame,
         setPhase,
+        acceptOpportunity,
+        dismissOpportunity,
+        rollOpportunity,
+        clearLastEarned,
       }}
     >
       {children}

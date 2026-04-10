@@ -1,9 +1,19 @@
-export interface NPC {
+export interface Character {
   id: string;
   name: string;
   sprite: string;
   dialogues: string[];
   tip?: string;
+  earningOnTalk?: EarningOpportunity;
+}
+
+export interface EarningOpportunity {
+  id: string;
+  type: "scenic" | "work" | "encounter";
+  title: string;
+  description: string;
+  earnings: number;
+  actionLabel: string;
 }
 
 export interface Destination {
@@ -15,9 +25,10 @@ export interface Destination {
   description: string;
   lodgingCost: number;
   flightCosts: Record<string, number>;
-  npcs: NPC[];
+  people: Character[];
   collectibleName: string;
   atmosphere: string;
+  earningOpportunities: EarningOpportunity[];
 }
 
 export const DESTINATIONS: Destination[] = [
@@ -41,7 +52,45 @@ export const DESTINATIONS: Destination[] = [
     },
     atmosphere: "Romantic & Grand",
     collectibleName: "Eiffel Miniature",
-    npcs: [
+    earningOpportunities: [
+      {
+        id: "paris_seine_sketch",
+        type: "scenic",
+        title: "Scenic Spot: The Seine at Dawn",
+        description:
+          "You stumble upon the perfect golden-hour view along the Seine. A tourist couple asks if you'll take their photo — and insist on paying.",
+        earnings: 35,
+        actionLabel: "Take the Photo",
+      },
+      {
+        id: "paris_bakery",
+        type: "work",
+        title: "Work: Morning Shift at a Boulangerie",
+        description:
+          "The bakery owner is short-handed this morning. He offers you cash to help load bread trays and serve the queue.",
+        earnings: 80,
+        actionLabel: "Work the Counter",
+      },
+      {
+        id: "paris_busker",
+        type: "encounter",
+        title: "Encounter: Street Art Contest",
+        description:
+          "A chalk artist near Montmartre invites you to join a small tourist contest. You draw something passable — the crowd cheers.",
+        earnings: 50,
+        actionLabel: "Draw Something",
+      },
+      {
+        id: "paris_guide",
+        type: "work",
+        title: "Work: Unofficial Tour Guide",
+        description:
+          "A confused group of tourists mistakes you for a local guide. You improvise a walking tour of the Latin Quarter.",
+        earnings: 95,
+        actionLabel: "Lead the Tour",
+      },
+    ],
+    people: [
       {
         id: "pierre",
         name: "Pierre",
@@ -52,6 +101,15 @@ export const DESTINATIONS: Destination[] = [
           "Many travelers pass through Paris... but few truly see it. Walk slowly, mon ami.",
         ],
         tip: "Stay an extra night — the Louvre alone takes two days.",
+        earningOnTalk: {
+          id: "pierre_work",
+          type: "work",
+          title: "Pierre's Kitchen Needs Help",
+          description:
+            "Pierre eyes your capable hands. 'You look like someone who knows hard work. Help me prep tonight's service — I'll pay fairly.'",
+          earnings: 70,
+          actionLabel: "Help in the Kitchen",
+        },
       },
       {
         id: "amelie",
@@ -85,7 +143,45 @@ export const DESTINATIONS: Destination[] = [
     },
     atmosphere: "Electric & Ancient",
     collectibleName: "Torii Gate Charm",
-    npcs: [
+    earningOpportunities: [
+      {
+        id: "tokyo_ramen",
+        type: "work",
+        title: "Work: Ramen Shop Extra Hands",
+        description:
+          "The ramen shop near Shinjuku station is overwhelmed at lunch. The owner motions you behind the counter.",
+        earnings: 75,
+        actionLabel: "Work the Lunch Rush",
+      },
+      {
+        id: "tokyo_shibuya_photo",
+        type: "scenic",
+        title: "Scenic Spot: Shibuya Crossing",
+        description:
+          "You time your photo of the famous crossing perfectly. A magazine scout spots it and wants to license it.",
+        earnings: 120,
+        actionLabel: "License the Shot",
+      },
+      {
+        id: "tokyo_karaoke",
+        type: "encounter",
+        title: "Encounter: Karaoke Tournament",
+        description:
+          "A group of salarymen drag you into a karaoke bar. You somehow win the amateur bracket. Cash prize.",
+        earnings: 60,
+        actionLabel: "Sing for the Prize",
+      },
+      {
+        id: "tokyo_vending",
+        type: "work",
+        title: "Work: Vending Machine Restocking",
+        description:
+          "A logistics worker needs help restocking a vending route across three subway stations.",
+        earnings: 55,
+        actionLabel: "Help Restock",
+      },
+    ],
+    people: [
       {
         id: "kenji",
         name: "Kenji",
@@ -96,6 +192,15 @@ export const DESTINATIONS: Destination[] = [
           "Quiet hours are between 10pm and 6am. We appreciate consideration.",
         ],
         tip: "Get a Suica card on day one. The trains go everywhere.",
+        earningOnTalk: {
+          id: "kenji_translation",
+          type: "encounter",
+          title: "Kenji Needs a Translator",
+          description:
+            "Kenji is meeting a foreign client and asks you to help translate during dinner. He insists on paying you for the evening.",
+          earnings: 90,
+          actionLabel: "Join the Dinner",
+        },
       },
       {
         id: "yuki",
@@ -129,7 +234,36 @@ export const DESTINATIONS: Destination[] = [
     },
     atmosphere: "Mystical & Ancient",
     collectibleName: "Inca Sun Stone",
-    npcs: [
+    earningOpportunities: [
+      {
+        id: "machu_carry",
+        type: "work",
+        title: "Work: Porter for the Day",
+        description:
+          "A trekking group's porter called in sick. They need someone to carry a pack up to the Sun Gate. Honest work.",
+        earnings: 85,
+        actionLabel: "Take the Pack",
+      },
+      {
+        id: "machu_sunrise",
+        type: "scenic",
+        title: "Scenic Spot: Sunrise Over the Ruins",
+        description:
+          "You wake before dawn and capture the mist lifting over the citadel. A travel magazine editor buys the photo.",
+        earnings: 110,
+        actionLabel: "Sell the Photo",
+      },
+      {
+        id: "machu_weaving",
+        type: "work",
+        title: "Work: Textile Market Stall",
+        description:
+          "A weaver at the Aguas Calientes market is sick. Her daughter asks if you'll mind the stall for the morning.",
+        earnings: 50,
+        actionLabel: "Mind the Stall",
+      },
+    ],
+    people: [
       {
         id: "inti",
         name: "Inti",
@@ -140,6 +274,15 @@ export const DESTINATIONS: Destination[] = [
           "The mountain behind you — Huayna Picchu — very few climb it. If you are able, do it.",
         ],
         tip: "Buy the Huayna Picchu permit in advance. They sell out months ahead.",
+        earningOnTalk: {
+          id: "inti_guide",
+          type: "encounter",
+          title: "Inti Offers You a Guide Job",
+          description:
+            "Inti says a group of travelers needs a walking companion through the terraces. 'You walk slow enough. That's good.'",
+          earnings: 65,
+          actionLabel: "Guide the Group",
+        },
       },
       {
         id: "rosa",
@@ -173,7 +316,45 @@ export const DESTINATIONS: Destination[] = [
     },
     atmosphere: "Ancient & Bustling",
     collectibleName: "Scarab Amulet",
-    npcs: [
+    earningOpportunities: [
+      {
+        id: "cairo_pyramid_photo",
+        type: "scenic",
+        title: "Scenic Spot: Pyramid at Sunrise",
+        description:
+          "The pyramids glow orange at dawn. A documentary crew spots your vantage point and pays you as a location scout.",
+        earnings: 90,
+        actionLabel: "Scout the Location",
+      },
+      {
+        id: "cairo_bazaar",
+        type: "work",
+        title: "Work: Khan el-Khalili Bazaar Help",
+        description:
+          "A spice merchant needs someone who speaks a little English to help sell to tourists for the afternoon.",
+        earnings: 60,
+        actionLabel: "Help at the Stall",
+      },
+      {
+        id: "cairo_camel",
+        type: "encounter",
+        title: "Encounter: Camel Race Bet",
+        description:
+          "A local camel handler bets you on a short race. You pick the right animal. He pays up, laughing.",
+        earnings: 45,
+        actionLabel: "Place the Bet",
+      },
+      {
+        id: "cairo_scribe",
+        type: "work",
+        title: "Work: Letter Scribe at the Market",
+        description:
+          "An elderly woman needs someone to transcribe a letter for her grandson. She pays with coin and generosity.",
+        earnings: 30,
+        actionLabel: "Write the Letter",
+      },
+    ],
+    people: [
       {
         id: "omar",
         name: "Omar",
@@ -184,6 +365,15 @@ export const DESTINATIONS: Destination[] = [
           "Khan el-Khalili bazaar at dawn — no tourists, only merchants setting up.",
         ],
         tip: "Early morning is the only time to see the Sphinx without crowds.",
+        earningOnTalk: {
+          id: "omar_history_tour",
+          type: "encounter",
+          title: "Omar Has a Job For You",
+          description:
+            "'A university group arrives tomorrow. I need a second pair of hands for the museum visit. Good pay, not much work.'",
+          earnings: 80,
+          actionLabel: "Help Omar",
+        },
       },
       {
         id: "fatima",
@@ -217,7 +407,36 @@ export const DESTINATIONS: Destination[] = [
     },
     atmosphere: "Serene & Sacred",
     collectibleName: "Bamboo Flute",
-    npcs: [
+    earningOpportunities: [
+      {
+        id: "kyoto_bamboo",
+        type: "scenic",
+        title: "Scenic Spot: Arashiyama Bamboo Grove",
+        description:
+          "At dawn, alone in the grove, you record a short video that goes quietly viral. A travel brand reaches out.",
+        earnings: 100,
+        actionLabel: "Accept the Deal",
+      },
+      {
+        id: "kyoto_temple",
+        type: "work",
+        title: "Work: Temple Garden Maintenance",
+        description:
+          "A Zen monastery needs a day laborer to rake gravel and clear moss. The monk offers a modest, honest payment.",
+        earnings: 55,
+        actionLabel: "Tend the Garden",
+      },
+      {
+        id: "kyoto_tea",
+        type: "encounter",
+        title: "Encounter: Tea Ceremony Demonstration",
+        description:
+          "A tea master needs a volunteer participant for a foreign visitor's ceremony. She pays you for playing the role.",
+        earnings: 40,
+        actionLabel: "Participate",
+      },
+    ],
+    people: [
       {
         id: "hiroshi",
         name: "Hiroshi",
@@ -228,6 +447,15 @@ export const DESTINATIONS: Destination[] = [
           "Arashiyama bamboo grove — go before seven in the morning. Go alone.",
         ],
         tip: "Gion district after dark — geiko lanterns light the alleys.",
+        earningOnTalk: {
+          id: "hiroshi_moss",
+          type: "work",
+          title: "Hiroshi Needs an Extra Hand",
+          description:
+            "Hiroshi looks at you steadily. 'The east garden needs clearing before the abbot's visit tomorrow. I cannot do it alone.'",
+          earnings: 60,
+          actionLabel: "Help Hiroshi",
+        },
       },
     ],
   },
@@ -251,7 +479,36 @@ export const DESTINATIONS: Destination[] = [
     },
     atmosphere: "Dreamlike & Volcanic",
     collectibleName: "Aegean Blue Tile",
-    npcs: [
+    earningOpportunities: [
+      {
+        id: "santorini_sunset",
+        type: "scenic",
+        title: "Scenic Spot: Oia Sunset",
+        description:
+          "You find the perfect rooftop. A couple pays handsomely for you to photograph their proposal at golden hour.",
+        earnings: 130,
+        actionLabel: "Photograph the Proposal",
+      },
+      {
+        id: "santorini_boat",
+        type: "work",
+        title: "Work: Boat Tour Deckhand",
+        description:
+          "A small tour boat needs a deckhand for the volcanic island route. Tourists tip generously here.",
+        earnings: 95,
+        actionLabel: "Join the Crew",
+      },
+      {
+        id: "santorini_taverna",
+        type: "work",
+        title: "Work: Evening at the Taverna",
+        description:
+          "Stavros's cousin needs help serving tables during the dinner rush. Simple work, good pay.",
+        earnings: 70,
+        actionLabel: "Serve Tables",
+      },
+    ],
+    people: [
       {
         id: "stavros",
         name: "Stavros",
@@ -262,6 +519,15 @@ export const DESTINATIONS: Destination[] = [
           "Swim in the hot springs near the volcano. Strange feeling, like the earth is alive.",
         ],
         tip: "Book a boat tour to the volcanic hot springs — only around $25.",
+        earningOnTalk: {
+          id: "stavros_kitchen",
+          type: "work",
+          title: "Stavros Needs Kitchen Help",
+          description:
+            "Stavros lowers his voice. 'My cook called in sick. You look like someone who can chop. I'll pay well, feed you too.'",
+          earnings: 85,
+          actionLabel: "Work the Kitchen",
+        },
       },
     ],
   },
@@ -285,7 +551,45 @@ export const DESTINATIONS: Destination[] = [
     },
     atmosphere: "Vivid & Labyrinthine",
     collectibleName: "Berber Lantern",
-    npcs: [
+    earningOpportunities: [
+      {
+        id: "marrakech_souk_guide",
+        type: "encounter",
+        title: "Encounter: Lost Tourists in the Medina",
+        description:
+          "Three tourists are hopelessly lost in the souk. You navigate them to Djemaa el-Fna. They're grateful — very grateful.",
+        earnings: 55,
+        actionLabel: "Guide Them Out",
+      },
+      {
+        id: "marrakech_leather",
+        type: "work",
+        title: "Work: Tannery Day Work",
+        description:
+          "The leather tannery needs hands for a full day of dyeing work. Intense. Smelly. Honest.",
+        earnings: 70,
+        actionLabel: "Take the Work",
+      },
+      {
+        id: "marrakech_djemaa",
+        type: "scenic",
+        title: "Scenic Spot: Djemaa el-Fna at Night",
+        description:
+          "You capture the square's chaos and fire in a single perfect shot. A travel blog buys it immediately.",
+        earnings: 85,
+        actionLabel: "Sell the Image",
+      },
+      {
+        id: "marrakech_henna",
+        type: "work",
+        title: "Work: Henna Artist's Assistant",
+        description:
+          "A henna artist needs someone to hold supplies and manage the queue of tourists.",
+        earnings: 40,
+        actionLabel: "Help the Artist",
+      },
+    ],
+    people: [
       {
         id: "hassan",
         name: "Hassan",
@@ -296,6 +600,15 @@ export const DESTINATIONS: Destination[] = [
           "Djemaa el-Fna at night — snake charmers, storytellers, the smoke of a hundred fires.",
         ],
         tip: "Stay in a riad. Hotels here miss the whole point of the city.",
+        earningOnTalk: {
+          id: "hassan_leather",
+          type: "work",
+          title: "Hassan Has Work in the Tannery",
+          description:
+            "Hassan squints at you. 'You want to see the real Marrakech? Come work one day in the tannery. I'll pay you. You'll never forget it.'",
+          earnings: 75,
+          actionLabel: "Accept Hassan's Offer",
+        },
       },
     ],
   },
@@ -319,7 +632,45 @@ export const DESTINATIONS: Destination[] = [
     },
     atmosphere: "Wild & Ethereal",
     collectibleName: "Volcanic Obsidian",
-    npcs: [
+    earningOpportunities: [
+      {
+        id: "reykjavik_aurora",
+        type: "scenic",
+        title: "Scenic Spot: Northern Lights",
+        description:
+          "Against all odds the aurora appears. You capture it in a long exposure. A Nordic tourism board buys the rights.",
+        earnings: 150,
+        actionLabel: "License the Photo",
+      },
+      {
+        id: "reykjavik_fish",
+        type: "work",
+        title: "Work: Fishing Boat Deckhand",
+        description:
+          "A fishing captain needs an extra hand for a one-day deep sea trip. Cold, wet, well paid.",
+        earnings: 110,
+        actionLabel: "Join the Boat",
+      },
+      {
+        id: "reykjavik_hot_spring",
+        type: "encounter",
+        title: "Encounter: Geothermal Tour Guide",
+        description:
+          "A group of geologists mistakes you for their guide. You wing it convincingly. They never find out.",
+        earnings: 70,
+        actionLabel: "Play the Part",
+      },
+      {
+        id: "reykjavik_cafe",
+        type: "work",
+        title: "Work: Hipster Café Barista",
+        description:
+          "A downtown café is short-staffed. The owner is desperate. You've made coffee before. Probably.",
+        earnings: 65,
+        actionLabel: "Work the Shift",
+      },
+    ],
+    people: [
       {
         id: "sigrid",
         name: "Sigrid",
@@ -330,6 +681,15 @@ export const DESTINATIONS: Destination[] = [
           "Northern lights forecast apps lie. Go out at midnight and look anyway.",
         ],
         tip: "Rent a car. The Ring Road connects everything that matters.",
+        earningOnTalk: {
+          id: "sigrid_research",
+          type: "encounter",
+          title: "Sigrid's Research Needs a Subject",
+          description:
+            "Sigrid is conducting a study on traveler perception of bioluminescence. She pays participants. You're the right demographic.",
+          earnings: 55,
+          actionLabel: "Join the Study",
+        },
       },
     ],
   },

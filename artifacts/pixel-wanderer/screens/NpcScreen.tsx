@@ -17,46 +17,64 @@ export function NpcScreen() {
   const insets = useSafeAreaInsets();
   const { state, advanceDialogue, backToExploring } = useGame();
   const dest = state.currentDestination;
-  const npc = dest?.npcs[state.currentNpcIndex];
+  const character = dest?.people[state.currentNpcIndex];
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
   const topPad = Platform.OS === "web" ? insets.top + 67 : insets.top;
 
-  if (!dest || !npc) return null;
+  if (!dest || !character) return null;
 
   const isLastDialogue =
-    state.currentDialogueIndex >= npc.dialogues.length - 1;
-  const currentText = npc.dialogues[state.currentDialogueIndex] ?? "";
-  const tip = isLastDialogue ? npc.tip : undefined;
+    state.currentDialogueIndex >= character.dialogues.length - 1;
+  const currentText = character.dialogues[state.currentDialogueIndex] ?? "";
+  const tip = isLastDialogue ? character.tip : undefined;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.navy }]}>
       {/* Background scene dimmed */}
       <View style={styles.sceneBackground}>
         <DestinationScene destination={dest} showOverlay={false} />
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(10,14,26,0.75)" }]} />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: "rgba(10,14,26,0.75)" },
+          ]}
+        />
       </View>
 
       {/* Top status */}
-      <View style={[styles.topArea, { paddingTop: topPad + 8, paddingHorizontal: 16 }]}>
+      <View
+        style={[
+          styles.topArea,
+          { paddingTop: topPad + 8, paddingHorizontal: 16 },
+        ]}
+      >
         <PixelText size="xs" color={colors.mutedForeground}>
           {dest.name} — Speaking with...
         </PixelText>
         <PixelText size="lg" color={colors.parchment} bold>
-          {npc.name}
+          {character.name}
         </PixelText>
+        {character.earningOnTalk && isLastDialogue && (
+          <PixelText size="xs" color={colors.gold}>
+            They may have an offer for you...
+          </PixelText>
+        )}
       </View>
 
       {/* Dialogue */}
       <View
         style={[
           styles.dialogueArea,
-          { paddingBottom: bottomPad + 20, paddingHorizontal: 16 },
+          {
+            paddingBottom: bottomPad + 20,
+            paddingHorizontal: 16,
+          },
         ]}
       >
         <DialogueBox
-          speakerName={npc.name}
-          speakerSprite={npc.sprite}
+          speakerName={character.name}
+          speakerSprite={character.sprite}
           text={currentText}
           onNext={advanceDialogue}
           isLast={isLastDialogue}
@@ -65,7 +83,7 @@ export function NpcScreen() {
 
         {/* Progress dots */}
         <View style={styles.progressDots}>
-          {npc.dialogues.map((_, i) => (
+          {character.dialogues.map((_, i) => (
             <View
               key={i}
               style={[
@@ -85,7 +103,7 @@ export function NpcScreen() {
 
         <View style={styles.buttons}>
           {isLastDialogue ? (
-            <PixelButton onPress={backToExploring} variant="primary">
+            <PixelButton onPress={advanceDialogue} variant="primary">
               FAREWELL
             </PixelButton>
           ) : (
