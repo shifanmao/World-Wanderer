@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useMemo } from "react";
 import {
   Animated,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -11,7 +12,7 @@ import { getTipActionById } from "@/constants/gameData";
 import { useColors } from "@/hooks/useColors";
 import { PixelText } from "@/components/PixelText";
 import { PixelButton } from "@/components/PixelButton";
-import { BudgetBar } from "@/components/BudgetBar";
+import { BudgetAndEnergyBar } from "@/components/BudgetAndEnergyBar";
 import { EarningCard } from "@/components/EarningCard";
 import { PixelatedImage } from "@/components/PixelatedImage";
 import { DestinationScene } from "@/components/DestinationScene";
@@ -24,11 +25,14 @@ export function ExploreScreen() {
     state,
     talkToCharacter,
     payLodging,
+    haveMeal,
     collectItem,
     setPhase,
     acceptOpportunity,
     dismissOpportunity,
     clearLastEarned,
+    viewImage,
+    endGame,
   } = useGame();
   const dest = state.currentDestination;
 
@@ -43,6 +47,9 @@ export function ExploreScreen() {
     ? state.collectedItems.includes(dest.collectibleName)
     : false;
   const canAffordLodging = (dest?.lodgingCost ?? 999) <= state.budget;
+  const visitCount = dest ? state.destinationVisitCounts[dest.id] || 1 : 1;
+  const actionKey = dest ? `${dest.id}_${visitCount}` : '';
+  const actionCount = dest && actionKey ? state.actionCounts[actionKey] || 0 : 0;
 
   const localTipMemories = useMemo(() => {
     if (!dest) return [];
@@ -79,9 +86,9 @@ export function ExploreScreen() {
 
   if (!dest) return null;
 
-  const HEADER_SCENE_H = 148;
+  const HEADER_SCENE_H = 100;
   /** Title strip: safe top + padding + two lines */
-  const CITY_TITLE_BLOCK_H = 52;
+  const CITY_TITLE_BLOCK_H = 40;
   const BUDGET_BAR_EST_H = 58;
   const toastTop =
     titleTopPad + CITY_TITLE_BLOCK_H + HEADER_SCENE_H + BUDGET_BAR_EST_H;
@@ -100,17 +107,31 @@ export function ExploreScreen() {
             },
           ]}
         >
-          <PixelText size="xs" color={colors.gold} bold>
-            {dest.country.toUpperCase()} — {dest.continent.toUpperCase()}
-          </PixelText>
-          <PixelText size="lg" color={colors.parchment} bold shadow>
-            {dest.name}
-          </PixelText>
+          <View style={styles.titleRow}>
+            <PixelText size="xs" color={colors.gold} bold>
+              {dest.country.toUpperCase()} — {dest.continent.toUpperCase()}
+            </PixelText>
+            <PixelText size="xs" color={colors.gold} bold>
+                REP: {state.reputation}
+              </PixelText>
+          </View>
+          <View style={styles.titleRow}>
+            <PixelText size="md" color={colors.parchment} bold shadow>
+              {dest.name}
+            </PixelText>
+            <PixelButton
+              onPress={endGame}
+              variant="ghost"
+              style={styles.quitButton}
+            >
+              END GAME
+            </PixelButton>
+          </View>
         </View>
         <View style={styles.sceneHeader}>
           <DestinationScene destination={dest} showOverlay={false} pixelBlock={10} />
         </View>
-        <BudgetBar />
+        <BudgetAndEnergyBar />
       </View>
 
       {/* Earned float toast */}
@@ -160,24 +181,28 @@ export function ExploreScreen() {
             </PixelText>
             <View style={styles.memoryGrid}>
               {localTipMemories.map(({ action }) => (
-                <View
+                <Pressable
                   key={action.id}
-                  style={[
-                    styles.memoryCard,
-                    { borderColor: colors.teal, backgroundColor: colors.navyLight },
-                  ]}
+                  onPress={() => viewImage(action.rewardImageUri, action.collectibleName)}
                 >
-                  <View style={styles.memoryThumb}>
-                    <PixelatedImage
-                      source={{ uri: action.rewardImageUri }}
-                      pixelBlock={8}
-                      rounded
-                    />
+                  <View
+                    style={[
+                      styles.memoryCard,
+                      { borderColor: colors.teal, backgroundColor: colors.navyLight },
+                    ]}
+                  >
+                    <View style={styles.memoryThumb}>
+                      <PixelatedImage
+                        source={{ uri: action.rewardImageUri }}
+                        pixelBlock={8}
+                        rounded
+                      />
+                    </View>
+                    <PixelText size="xs" color={colors.parchment} bold align="center">
+                      {action.collectibleName}
+                    </PixelText>
                   </View>
-                  <PixelText size="xs" color={colors.parchment} bold align="center">
-                    {action.collectibleName}
-                  </PixelText>
-                </View>
+                </Pressable>
               ))}
             </View>
           </View>
@@ -195,13 +220,21 @@ export function ExploreScreen() {
               FOUND NEARBY
             </PixelText>
             <View style={styles.collectRow}>
-              <PixelText size="sm" color={colors.parchment}>
-                A {dest.collectibleName} is within reach.
-              </PixelText>
+              <View style={styles.collectEmoji}>
+                <PixelText size="xxl">🎁</PixelText>
+              </View>
+              <View style={styles.collectInfo}>
+                <PixelText size="sm" color={colors.parchment}>
+                  {dest.collectibleName}
+                </PixelText>
+                <PixelText size="xs" color={colors.mutedForeground}>
+                  Within reach
+                </PixelText>
+              </View>
               <PixelButton
                 onPress={collectItem}
                 variant="secondary"
-                style={{ alignSelf: "flex-start" }}
+                style={{ alignSelf: "center" }}
               >
                 COLLECT
               </PixelButton>
@@ -219,9 +252,14 @@ export function ExploreScreen() {
             <PixelText size="xs" color={colors.mutedForeground}>
               COLLECTED
             </PixelText>
-            <PixelText size="sm" color={colors.parchmentDark}>
-              {dest.collectibleName} — safely stored in your pack.
-            </PixelText>
+            <View style={styles.collectRow}>
+              <View style={[styles.collectEmoji, { backgroundColor: colors.navyLight }]}>
+                <PixelText size="xxl">✓</PixelText>
+              </View>
+              <PixelText size="sm" color={colors.parchmentDark}>
+                {dest.collectibleName} — safely stored in your pack.
+              </PixelText>
+            </View>
           </View>
         )}
 
@@ -232,49 +270,62 @@ export function ExploreScreen() {
           </PixelText>
         </View>
 
-        {dest.people.map((character, index) => (
-          <View
-            key={character.id}
-            style={[
-              styles.characterCard,
-              {
-                backgroundColor: colors.navyLight,
-                borderColor: colors.border,
-              },
-            ]}
-          >
+        {dest.people.map((character, index) => {
+          const familiarityKey = `${dest.id}_${character.id}`;
+          const familiarity = state.familiarity[familiarityKey] || 0;
+          const energyCost = character.energyCost || 10;
+          const canTalk = actionCount < 5 && state.energy >= energyCost;
+
+          return (
             <View
+              key={character.id}
               style={[
-                styles.characterSprite,
-                { backgroundColor: colors.navy, borderColor: colors.teal },
+                styles.characterCard,
+                {
+                  backgroundColor: colors.navyLight,
+                  borderColor: colors.border,
+                },
               ]}
             >
-              <PixelText size="xl" align="center">
-                {character.sprite}
-              </PixelText>
-            </View>
-            <View style={styles.characterInfo}>
-              <PixelText size="sm" color={colors.parchment} bold>
-                {character.name}
-              </PixelText>
-              <PixelText size="xs" color={colors.mutedForeground}>
-                {character.dialogues[0].slice(0, 45)}...
-              </PixelText>
-              {character.earningOnTalk && (
-                <PixelText size="xs" color={colors.gold}>
-                  May offer work
+              <View
+                style={[
+                  styles.characterSprite,
+                  { backgroundColor: colors.navy, borderColor: colors.teal },
+                ]}
+              >
+                <PixelText size="xl" align="center">
+                  {character.sprite}
                 </PixelText>
-              )}
+              </View>
+              <View style={styles.characterInfo}>
+                <PixelText size="sm" color={colors.parchment} bold>
+                  {character.name}
+                </PixelText>
+                <PixelText size="xs" color={colors.mutedForeground}>
+                  {character.dialogues[0].slice(0, 45)}...
+                </PixelText>
+                <View style={styles.familiarityRow}>
+                  <PixelText size="xs" color={colors.teal}>
+                    Familiarity: {familiarity}/10
+                  </PixelText>
+                </View>
+                {character.earningOnTalk && (
+                  <PixelText size="xs" color={colors.gold}>
+                    May offer work
+                  </PixelText>
+                )}
+              </View>
+              <PixelButton
+                onPress={() => talkToCharacter(index)}
+                variant={canTalk ? "ghost" : "ghost"}
+                disabled={!canTalk}
+                style={{ alignSelf: "center", opacity: canTalk ? 1 : 0.5 }}
+              >
+                {actionCount >= 5 ? "DONE" : `TALK (${energyCost}⚡)`}
+              </PixelButton>
             </View>
-            <PixelButton
-              onPress={() => talkToCharacter(index)}
-              variant="ghost"
-              style={{ alignSelf: "center" }}
-            >
-              TALK
-            </PixelButton>
-          </View>
-        ))}
+          );
+        })}
 
         {/* Actions */}
         <View style={styles.sectionHeader}>
@@ -283,25 +334,36 @@ export function ExploreScreen() {
           </PixelText>
         </View>
 
-        <PixelButton onPress={() => setPhase("flying")} variant="primary">
-          ✈  BOOK A FLIGHT
-        </PixelButton>
+        <View style={styles.buttonRow}>
+          <PixelButton
+            onPress={() => haveMeal()}
+            variant={state.budget >= 15 ? "secondary" : "ghost"}
+            disabled={state.budget < 15}
+            style={{ flex: 1 }}
+          >
+            {state.budget >= 15 ? "🍽️ HAVE MEAL ($15, +10⚡)" : "🍽️ MEAL ($15)"}
+          </PixelButton>
+          <PixelButton
+            onPress={() => payLodging()}
+            variant={canAffordLodging ? "secondary" : "ghost"}
+            disabled={!canAffordLodging}
+            style={{ flex: 1 }}
+          >
+            {canAffordLodging
+              ? `🏨 REST ($${dest.lodgingCost}, +20⚡)`
+              : `🏨 REST ($${dest.lodgingCost})`}
+          </PixelButton>
+        </View>
 
-        <PixelButton
-          onPress={() => payLodging()}
-          variant={canAffordLodging ? "secondary" : "ghost"}
-          disabled={!canAffordLodging}
-        >
-          {canAffordLodging
-            ? `REST ANOTHER NIGHT  ($${dest.lodgingCost} → Day ${state.dayCount + 1})`
-            : `REST ($${dest.lodgingCost}) — INSUFFICIENT FUNDS`}
+        <PixelButton onPress={() => setPhase("flying")} variant="primary">
+          ✈️ BOOK A FLIGHT
         </PixelButton>
 
         <PixelButton
           onPress={() => setPhase("collection")}
           variant="ghost"
         >
-          TRAVEL JOURNAL  ({state.collectedItems.length} items)
+          📖 TRAVEL JOURNAL ({state.collectedItems.length} items)
         </PixelButton>
 
         {state.budget < 100 && (
@@ -336,14 +398,23 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   sceneHeader: {
-    height: 148,
+    height: 100,
     overflow: "hidden",
   },
   cityTitleStrip: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
     borderBottomWidth: 2,
     gap: 4,
+  },
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  quitButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
   },
   scroll: {
     flex: 1,
@@ -360,11 +431,28 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   collectRow: {
-    gap: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  collectEmoji: {
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+  },
+  collectInfo: {
+    flex: 1,
+    gap: 2,
   },
   sectionHeader: {
     marginTop: 4,
     marginBottom: 2,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 8,
   },
   characterCard: {
     borderWidth: 2,
@@ -383,6 +471,9 @@ const styles = StyleSheet.create({
   characterInfo: {
     flex: 1,
     gap: 4,
+  },
+  familiarityRow: {
+    marginTop: 2,
   },
   warningBox: {
     borderWidth: 2,

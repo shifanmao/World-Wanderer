@@ -2,6 +2,8 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useGame } from "@/context/GameContext";
 import { TitleScreen } from "@/screens/TitleScreen";
+import { TutorialScreen } from "@/screens/TutorialScreen";
+import { CharacterSelectScreen } from "@/screens/CharacterSelectScreen";
 import { HomeScreen } from "@/screens/HomeScreen";
 import { ArrivingScreen } from "@/screens/ArrivingScreen";
 import { ExploreScreen } from "@/screens/ExploreScreen";
@@ -9,6 +11,13 @@ import { NpcScreen } from "@/screens/NpcScreen";
 import { FlyScreen } from "@/screens/FlyScreen";
 import { CollectionScreen } from "@/screens/CollectionScreen";
 import { GameOverScreen } from "@/screens/GameOverScreen";
+import { ImageViewerScreen } from "@/screens/ImageViewerScreen";
+import { FamiliarityAnimationScreen } from "@/screens/FamiliarityAnimationScreen";
+import { ActionRewardScreen } from "@/screens/ActionRewardScreen";
+import { MealScreen } from "@/screens/MealScreen";
+import { HotelScreen } from "@/screens/HotelScreen";
+import { TravelMemoryScreen } from "@/screens/TravelMemoryScreen";
+import { ThankYouScreen } from "@/screens/ThankYouScreen";
 import { useColors } from "@/hooks/useColors";
 
 export default function GameScreen() {
@@ -19,6 +28,10 @@ export default function GameScreen() {
     switch (state.phase) {
       case "title":
         return <TitleScreen />;
+      case "tutorial":
+        return <TutorialScreen />;
+      case "character_select":
+        return <CharacterSelectScreen />;
       case "home":
         return <HomeScreen />;
       case "arriving":
@@ -33,6 +46,16 @@ export default function GameScreen() {
         return <CollectionScreen />;
       case "game_over":
         return <GameOverScreen />;
+      case "image_viewer":
+        return <ImageViewerScreen />;
+      case "meal":
+        return <MealScreen />;
+      case "hotel":
+        return <HotelScreen />;
+      case "travel_memory":
+        return <TravelMemoryScreen />;
+      case "thank_you":
+        return <ThankYouScreen />;
       default:
         return <TitleScreen />;
     }
@@ -40,7 +63,9 @@ export default function GameScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.navy }]}>
-      {renderScreen()}
+      {state.familiarityAnimation && <FamiliarityAnimationScreen />}
+      {state.actionReward && <ActionRewardScreen />}
+      {!state.familiarityAnimation && !state.actionReward && renderScreen()}
     </View>
   );
 }

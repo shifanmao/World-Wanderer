@@ -95,7 +95,7 @@ export function EarningCard({ opportunity, onAccept, onDismiss }: EarningCardPro
           variant="primary"
           style={{ flex: 1 }}
         >
-          {opportunity.actionLabel}
+          {opportunity.actionLabel} (1⚡)
         </PixelButton>
         <PixelButton
           onPress={onDismiss}

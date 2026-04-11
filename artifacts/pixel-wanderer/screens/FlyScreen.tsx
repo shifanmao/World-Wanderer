@@ -9,14 +9,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { PixelText } from "@/components/PixelText";
 import { PixelButton } from "@/components/PixelButton";
-import { BudgetBar } from "@/components/BudgetBar";
+import { BudgetAndEnergyBar } from "@/components/BudgetAndEnergyBar";
 import { DESTINATIONS } from "@/constants/gameData";
 import { useGame } from "@/context/GameContext";
 
 export function FlyScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { state, flyTo, backToExploring } = useGame();
+  const { state, flyTo, backToExploring, endGame } = useGame();
   const dest = state.currentDestination;
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -27,30 +27,41 @@ export function FlyScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.navy }]}>
       {/* Header */}
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: titleTopPad + 8,
-            paddingHorizontal: 16,
-            paddingBottom: 16,
-            backgroundColor: colors.navyLight,
-            borderBottomColor: colors.gold,
-          },
-        ]}
-      >
-        <PixelText size="xs" color={colors.gold} bold>
-          DEPARTING FROM
-        </PixelText>
-        <PixelText size="lg" color={colors.parchment} bold>
-          {dest?.name ?? "Unknown"}
-        </PixelText>
-        <PixelText size="xs" color={colors.mutedForeground}>
-          Select your next destination
-        </PixelText>
-      </View>
+      <View style={styles.topFixedColumn}>
+        <View
+          style={[
+            styles.header,
+            {
+              paddingTop: titleTopPad,
+              backgroundColor: colors.navyLight,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
+          <View style={styles.titleRow}>
+            <PixelText size="xs" color={colors.gold} bold>
+              DEPARTING FROM
+            </PixelText>
+            <PixelText size="xs" color={colors.gold} bold>
+              REP: {state.reputation}
+            </PixelText>
+          </View>
+          <View style={styles.titleRow}>
+            <PixelText size="md" color={colors.parchment} bold shadow>
+              {dest?.name ?? "Unknown"}
+            </PixelText>
+            <PixelButton
+              onPress={endGame}
+              variant="ghost"
+              style={styles.quitButton}
+            >
+              END GAME
+            </PixelButton>
+          </View>
+        </View>
 
-      <BudgetBar />
+        <BudgetAndEnergyBar />
+      </View>
 
       <ScrollView
         style={styles.scroll}
@@ -62,6 +73,7 @@ export function FlyScreen() {
       >
         {otherDestinations.map((target) => {
           const cost = dest?.flightCosts[target.id] ?? 9999;
+          const duration = dest?.flightDurations[target.id] ?? 0;
           const canAfford = state.budget >= cost;
           const visited = state.visitedDestinations.includes(target.id);
 
@@ -104,13 +116,10 @@ export function FlyScreen() {
                   color={canAfford ? colors.gold : colors.red}
                   bold
                 >
-                  ${cost}
+                  💰 -${cost}
                 </PixelText>
                 <PixelText size="xs" color={colors.mutedForeground}>
-                  flight
-                </PixelText>
-                <PixelText size="xs" color={colors.mutedForeground}>
-                  +${target.lodgingCost}/night
+                  {duration}h flight ({Math.max(10, duration * 2)}⚡)
                 </PixelText>
               </View>
 
@@ -137,10 +146,26 @@ export function FlyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    overflow: "hidden",
+  },
+  topFixedColumn: {
+    flexShrink: 0,
+    zIndex: 2,
+    elevation: 4,
   },
   header: {
     borderBottomWidth: 3,
-    gap: 2,
+    gap: 8,
+  },
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  quitButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    alignSelf: "center",
   },
   scroll: {
     flex: 1,

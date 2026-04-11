@@ -1,0 +1,124 @@
+import React from "react";
+import {
+  Platform,
+  StyleSheet,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PixelatedImage } from "@/components/PixelatedImage";
+import { useColors } from "@/hooks/useColors";
+import { PixelText } from "@/components/PixelText";
+import { PixelButton } from "@/components/PixelButton";
+import { useGame } from "@/context/GameContext";
+
+export function TravelMemoryScreen() {
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const { state, dismissMealReward } = useGame();
+
+  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+  const titleTopPad = Platform.OS === "web" ? 8 : insets.top;
+
+  if (!state.travelMemory) return null;
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.navy }]}>
+      {/* Header */}
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: titleTopPad + 8,
+            paddingHorizontal: 16,
+            paddingBottom: 16,
+            backgroundColor: colors.navyLight,
+            borderBottomColor: colors.gold,
+          },
+        ]}
+      >
+        <PixelText size="xs" color={colors.gold} bold align="center">
+          ✨ TRAVEL MEMORY ✨
+        </PixelText>
+        <PixelText size="lg" color={colors.parchment} bold align="center">
+          A Special Moment
+        </PixelText>
+      </View>
+
+      <View
+        style={[
+          styles.content,
+          { paddingTop: 20, paddingBottom: bottomPad + 20, paddingHorizontal: 16 },
+        ]}
+      >
+        {/* Memory Image */}
+        <View style={styles.imageContainer}>
+          <PixelatedImage
+            source={{ uri: state.travelMemory.imageUri }}
+            pixelBlock={8}
+            rounded
+            style={styles.image}
+          />
+        </View>
+
+        {/* Memory Details */}
+        <View style={styles.details}>
+          <PixelText size="xl" color={colors.gold} bold align="center">
+            {state.travelMemory.title}
+          </PixelText>
+          <PixelText size="sm" color={colors.parchment} align="center" style={styles.description}>
+            {state.travelMemory.description}
+          </PixelText>
+          <PixelText size="xs" color={colors.teal} bold align="center" style={styles.reputation}>
+            +{state.travelMemory.reputationGain} Reputation
+          </PixelText>
+        </View>
+
+        {/* Continue Button */}
+        <PixelButton onPress={dismissMealReward} variant="primary" style={styles.button}>
+          CONTINUE
+        </PixelButton>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    borderBottomWidth: 3,
+    gap: 8,
+  },
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 20,
+  },
+  imageContainer: {
+    width: 300,
+    height: 300,
+    borderRadius: 8,
+    overflow: "hidden",
+    borderWidth: 3,
+    borderColor: "#FFD700",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+  },
+  details: {
+    gap: 12,
+    alignItems: "center",
+  },
+  description: {
+    paddingHorizontal: 20,
+  },
+  reputation: {
+    marginTop: 8,
+  },
+  button: {
+    minWidth: 200,
+  },
+});

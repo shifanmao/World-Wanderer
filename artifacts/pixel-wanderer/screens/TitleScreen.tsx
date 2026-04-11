@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Platform,
@@ -15,7 +15,8 @@ import { useGame } from "@/context/GameContext";
 export function TitleScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { startGame } = useGame();
+  const { setPhase, loadHighScore } = useGame();
+  const [highScore, setHighScore] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const starAnims = useRef(
@@ -25,6 +26,10 @@ export function TitleScreen() {
       opacity: new Animated.Value(Math.random()),
     })),
   ).current;
+
+  useEffect(() => {
+    loadHighScore().then((score) => setHighScore(score));
+  }, [loadHighScore]);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -161,7 +166,7 @@ export function TitleScreen() {
           <Animated.View
             style={[styles.startArea, { transform: [{ scale: pulseAnim }] }]}
           >
-            <PixelButton onPress={startGame} variant="primary">
+            <PixelButton onPress={() => setPhase("tutorial")} variant="primary">
               BEGIN JOURNEY
             </PixelButton>
           </Animated.View>
@@ -169,6 +174,11 @@ export function TitleScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
+          {highScore > 0 && (
+            <PixelText size="xs" color={colors.gold} bold align="center">
+              RECORD REPUTATION: {highScore}
+            </PixelText>
+          )}
           <PixelText size="xs" color={colors.mutedForeground} align="center">
             Budget: $2,000 · 8 Destinations · Infinite Stories
           </PixelText>

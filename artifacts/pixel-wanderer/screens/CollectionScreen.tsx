@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import {
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -10,61 +11,161 @@ import { PixelatedImage } from "@/components/PixelatedImage";
 import { useColors } from "@/hooks/useColors";
 import { PixelText } from "@/components/PixelText";
 import { PixelButton } from "@/components/PixelButton";
+import { BudgetAndEnergyBar } from "@/components/BudgetAndEnergyBar";
 import { DESTINATIONS, getTipActionById } from "@/constants/gameData";
 import { useGame } from "@/context/GameContext";
 
 export function CollectionScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { state, backToExploring } = useGame();
+  const { state, backToExploring, endGame, viewImage } = useGame();
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
-  const topPad = Platform.OS === "web" ? insets.top + 67 : insets.top;
+  const titleTopPad = Platform.OS === "web" ? 8 : insets.top;
 
-  const completion = Math.round(
-    (state.visitedDestinations.length / DESTINATIONS.length) * 100,
+  const friends = useMemo(
+    () => {
+      const highFamiliarityThreshold = 5;
+      const friendList: Array<{
+        name: string;
+        sprite: string;
+        destinationName: string;
+        familiarity: number;
+      }> = [];
+
+      DESTINATIONS.forEach((dest) => {
+        dest.people.forEach((person) => {
+          const familiarityKey = `${dest.id}_${person.id}`;
+          const familiarity = state.familiarity[familiarityKey] || 0;
+          if (familiarity >= highFamiliarityThreshold) {
+            friendList.push({
+              name: person.name,
+              sprite: person.sprite,
+              destinationName: dest.name,
+              familiarity,
+            });
+          }
+        });
+      });
+
+      return friendList;
+    },
+    [state.familiarity],
   );
 
   const tipMemories = useMemo(
     () =>
       state.collectedTipActionIds
         .map((id) => getTipActionById(id))
-        .filter((m): m is NonNullable<typeof m> => m !== null),
+        .filter((m): m is NonNullable<typeof m> => m !== null)
+        .filter((m) => m.action.rewardImageUri && m.action.rewardImageUri.length > 0),
     [state.collectedTipActionIds],
   );
+
+  const collectedMeals = useMemo(() => {
+    const meals: Array<{
+      name: string;
+      imageUri: string;
+      country: string;
+      destinationName: string;
+    }> = [];
+
+    DESTINATIONS.forEach((dest) => {
+      if (state.collectedMeals.includes(dest.localMeal.name)) {
+        meals.push({
+          name: dest.localMeal.name,
+          imageUri: dest.localMeal.imageUri,
+          country: dest.country,
+          destinationName: dest.name,
+        });
+      }
+    });
+
+    return meals;
+  }, [state.collectedMeals]);
+
+  // Group all collectibles by theme
+  const collectiblesByTheme = useMemo(() => {
+    const themes: Record<string, { name: string; collected: boolean; destination?: string; icon: string }[]> = {};
+
+    const themeIcons: Record<string, string> = {
+      "Artifacts": "🏺",
+      "Nature": "🌿",
+      "Food": "🍽️",
+      "Crafts": "🎨",
+      "Architecture": "🏛️",
+      "Music": "🎵",
+      "Clothing": "👕",
+      "Jewelry": "💎",
+    };
+
+    DESTINATIONS.forEach((dest) => {
+      // Main collectible
+      const mainCollected = state.collectedItems.includes(dest.collectibleName);
+      if (!themes[dest.collectibleTheme]) {
+        themes[dest.collectibleTheme] = [];
+      }
+      themes[dest.collectibleTheme].push({
+        name: dest.collectibleName,
+        collected: mainCollected,
+        destination: dest.name,
+        icon: themeIcons[dest.collectibleTheme] || "📦",
+      });
+
+      // Additional collectibles
+      dest.additionalCollectibles?.forEach((additional) => {
+        const additionalCollected = state.collectedItems.includes(additional.name);
+        if (!themes[additional.theme]) {
+          themes[additional.theme] = [];
+        }
+        themes[additional.theme].push({
+          name: additional.name,
+          collected: additionalCollected,
+          destination: dest.name,
+          icon: themeIcons[additional.theme] || "📦",
+        });
+      });
+    });
+
+    return themes;
+  }, [state.collectedItems]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.navy }]}>
       {/* Header */}
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            paddingHorizontal: 16,
-            paddingBottom: 16,
-            backgroundColor: colors.navyLight,
-            borderBottomColor: colors.gold,
-          },
-        ]}
-      >
-        <PixelText size="lg" color={colors.gold} bold align="center">
-          TRAVELER JOURNAL
-        </PixelText>
-        <PixelText size="xs" color={colors.mutedForeground} align="center">
-          {state.visitedDestinations.length} of {DESTINATIONS.length} destinations · {completion}% explored
-        </PixelText>
-        <View style={[styles.progressBar, { backgroundColor: colors.navy }]}>
-          <View
-            style={[
-              styles.progressFill,
-              {
-                width: `${completion}%` as any,
-                backgroundColor: colors.gold,
-              },
-            ]}
-          />
+      <View style={styles.topFixedColumn}>
+        <View
+          style={[
+            styles.header,
+            {
+              paddingTop: titleTopPad,
+              backgroundColor: colors.navyLight,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
+          <View style={styles.titleRow}>
+            <PixelText size="xs" color={colors.gold} bold>
+              TRAVELER JOURNAL
+            </PixelText>
+            <PixelText size="xs" color={colors.gold} bold>
+              REP: {state.reputation}
+            </PixelText>
+          </View>
+          <View style={styles.titleRow}>
+            <PixelText size="md" color={colors.parchment} bold shadow>
+              Your Collection
+            </PixelText>
+            <PixelButton
+              onPress={endGame}
+              variant="ghost"
+              style={styles.quitButton}
+            >
+              END GAME
+            </PixelButton>
+          </View>
         </View>
+        <BudgetAndEnergyBar />
       </View>
 
       <ScrollView
@@ -75,142 +176,195 @@ export function CollectionScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {tipMemories.length > 0 && (
-          <View style={styles.section}>
-            <PixelText size="xs" color={colors.gold} bold>
-              TIP MEMORIES ({tipMemories.length})
-            </PixelText>
-            <PixelText size="xs" color={colors.mutedForeground}>
-              Moments from following locals’ advice.
-            </PixelText>
+        {/* Section 1: Travel Memories */}
+        <View style={styles.section}>
+          <PixelText size="xs" color={colors.gold} bold>
+            1. TRAVEL MEMORIES ({tipMemories.length})
+          </PixelText>
+          <PixelText size="xs" color={colors.mutedForeground}>
+            Memories from following locals' advice.
+          </PixelText>
+          {tipMemories.length > 0 ? (
             <View style={styles.tipGrid}>
               {tipMemories.map(({ action, destinationName, npcName }) => (
-                <View
+                <Pressable
                   key={action.id}
-                  style={[
-                    styles.tipCard,
-                    {
-                      backgroundColor: colors.navyLight,
-                      borderColor: colors.gold,
-                    },
-                  ]}
+                  onPress={() => viewImage(action.rewardImageUri, action.collectibleName)}
                 >
-                  <View style={styles.tipImageWrap}>
-                    <PixelatedImage
-                      source={{ uri: action.rewardImageUri }}
-                      pixelBlock={8}
-                      rounded
-                    />
+                  <View
+                    style={[
+                      styles.tipCard,
+                      {
+                        backgroundColor: colors.navyLight,
+                        borderColor: colors.gold,
+                      },
+                    ]}
+                  >
+                    <View style={styles.tipImageWrap}>
+                      <PixelatedImage
+                        source={{ uri: action.rewardImageUri }}
+                        pixelBlock={8}
+                        rounded
+                      />
+                    </View>
                   </View>
-                  <PixelText size="xs" color={colors.parchment} bold>
-                    {action.collectibleName}
-                  </PixelText>
-                  <PixelText size="xs" color={colors.mutedForeground}>
-                    {destinationName} · {npcName}
-                  </PixelText>
-                </View>
+                </Pressable>
               ))}
             </View>
-          </View>
-        )}
-
-        {/* Collectibles */}
-        {state.collectedItems.length > 0 && (
-          <View style={styles.section}>
-            <PixelText size="xs" color={colors.tealLight} bold>
-              COLLECTIBLES ({state.collectedItems.length})
+          ) : (
+            <PixelText size="xs" color={colors.mutedForeground} align="center">
+              No travel memories yet. Follow locals' advice to collect memories!
             </PixelText>
-            <View style={styles.itemsGrid}>
-              {state.collectedItems.map((item) => (
+          )}
+        </View>
+
+        {/* Section 2: Collectables - hide themes if none collected */}
+        <View style={styles.section}>
+          <PixelText size="xs" color={colors.gold} bold>
+            2. COLLECTABLES
+          </PixelText>
+          <PixelText size="xs" color={colors.mutedForeground}>
+            Items you've discovered on your journey.
+          </PixelText>
+          {Object.entries(collectiblesByTheme)
+            .filter(([_, collectibles]) => {
+              const collectedCount = collectibles.filter((c) => c.collected).length;
+              return collectedCount > 0;
+            })
+            .map(([theme, collectibles]) => {
+              const collectedCount = collectibles.filter((c) => c.collected).length;
+              const totalCount = collectibles.length;
+              const isComplete = collectedCount === totalCount;
+
+              return (
+                <View key={theme} style={styles.subsection}>
+                  <PixelText size="xs" color={isComplete ? colors.gold : colors.tealLight} bold>
+                    {theme} ({collectedCount}/{totalCount})
+                    {isComplete && " ✓ COMPLETE"}
+                  </PixelText>
+                  <View style={styles.itemsGrid}>
+                    {collectibles.map((item) => (
+                      <View
+                        key={item.name}
+                        style={[
+                          styles.itemChip,
+                          {
+                            backgroundColor: item.collected ? colors.navyLight : colors.navy + "44",
+                            borderColor: item.collected ? colors.teal : colors.border,
+                          },
+                        ]}
+                      >
+                        <View style={styles.collectableIconRow}>
+                          <PixelText size="xs">{item.icon}</PixelText>
+                          <PixelText size="xs" color={item.collected ? colors.parchment : colors.mutedForeground} bold>
+                            {item.collected ? item.name : "?"}
+                          </PixelText>
+                        </View>
+                        {item.collected && item.destination && (
+                          <PixelText size="xs" color={colors.mutedForeground}>
+                            {item.destination}
+                          </PixelText>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              );
+            })}
+          {Object.entries(collectiblesByTheme).every(([_, collectibles]) => {
+            const collectedCount = collectibles.filter((c) => c.collected).length;
+            return collectedCount === 0;
+          }) && (
+            <PixelText size="xs" color={colors.mutedForeground} align="center">
+              No collectables yet. Explore destinations to find items!
+            </PixelText>
+          )}
+        </View>
+
+        {/* Section 3: Meals */}
+        <View style={styles.section}>
+          <PixelText size="xs" color={colors.gold} bold>
+            3. MEALS ({collectedMeals.length})
+          </PixelText>
+          <PixelText size="xs" color={colors.mutedForeground}>
+            Local dishes you've tasted.
+          </PixelText>
+          {collectedMeals.length > 0 ? (
+            <View style={styles.tipGrid}>
+              {collectedMeals.map((meal) => (
+                <Pressable
+                  key={meal.name}
+                  onPress={() => viewImage(meal.imageUri, meal.name)}
+                >
+                  <View
+                    style={[
+                      styles.tipCard,
+                      {
+                        backgroundColor: colors.navyLight,
+                        borderColor: colors.gold,
+                      },
+                    ]}
+                  >
+                    <View style={styles.tipImageWrap}>
+                      <PixelatedImage
+                        source={{ uri: meal.imageUri }}
+                        pixelBlock={8}
+                        rounded
+                      />
+                    </View>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <PixelText size="xs" color={colors.mutedForeground} align="center">
+              No meals yet. Have a meal to collect local dishes!
+            </PixelText>
+          )}
+        </View>
+
+        {/* Section 4: Friends */}
+        <View style={styles.section}>
+          <PixelText size="xs" color={colors.gold} bold>
+            4. FRIENDS ({friends.length})
+          </PixelText>
+          <PixelText size="xs" color={colors.mutedForeground}>
+            People you've gotten to know well.
+          </PixelText>
+          {friends.length > 0 ? (
+            <View style={styles.friendsGrid}>
+              {friends.map((friend, index) => (
                 <View
-                  key={item}
+                  key={`${friend.name}-${friend.destinationName}-${index}`}
                   style={[
-                    styles.itemChip,
+                    styles.friendCard,
                     {
                       backgroundColor: colors.navyLight,
                       borderColor: colors.teal,
                     },
                   ]}
                 >
-                  <PixelText size="xs" color={colors.parchment} bold>
-                    {item}
+                  <View style={[styles.friendEmoji, { backgroundColor: colors.navy }]}>
+                    <PixelText size="xxl">{friend.sprite}</PixelText>
+                  </View>
+                  <PixelText size="xs" color={colors.parchment} bold align="center">
+                    {friend.name}
+                  </PixelText>
+                  <PixelText size="xs" color={colors.mutedForeground} align="center">
+                    {friend.destinationName}
+                  </PixelText>
+                  <PixelText size="xs" color={colors.teal} align="center">
+                    Familiarity: {friend.familiarity}/10
                   </PixelText>
                 </View>
               ))}
             </View>
-          </View>
-        )}
-
-        {/* Destination stamps */}
-        <PixelText size="xs" color={colors.gold} bold>
-          DESTINATIONS
-        </PixelText>
-
-        {DESTINATIONS.map((dest) => {
-          const visited = state.visitedDestinations.includes(dest.id);
-          const collected = state.collectedItems.includes(dest.collectibleName);
-          const isCurrent = state.currentDestination?.id === dest.id;
-
-          return (
-            <View
-              key={dest.id}
-              style={[
-                styles.destCard,
-                {
-                  backgroundColor: visited
-                    ? colors.navyLight
-                    : colors.navy,
-                  borderColor: isCurrent
-                    ? colors.gold
-                    : visited
-                    ? colors.teal
-                    : colors.border,
-                  opacity: visited ? 1 : 0.4,
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.destStamp,
-                  {
-                    backgroundColor: visited ? colors.teal : colors.border,
-                    borderColor: visited ? colors.tealLight : colors.border,
-                  },
-                ]}
-              >
-                <PixelText size="xs" color={visited ? colors.parchment : colors.mutedForeground} bold align="center">
-                  {visited ? "STAMP" : "?"}
-                </PixelText>
-              </View>
-              <View style={styles.destInfo}>
-                <View style={styles.destNameRow}>
-                  <PixelText
-                    size="md"
-                    color={visited ? colors.parchment : colors.mutedForeground}
-                    bold
-                  >
-                    {visited ? dest.name : "???"}
-                  </PixelText>
-                  {isCurrent && (
-                    <View style={[styles.hereBadge, { backgroundColor: colors.gold }]}>
-                      <PixelText size="xs" color={colors.navy} bold>
-                        HERE
-                      </PixelText>
-                    </View>
-                  )}
-                </View>
-                <PixelText size="xs" color={colors.mutedForeground}>
-                  {visited ? `${dest.country} · ${dest.continent}` : "Undiscovered"}
-                </PixelText>
-                {visited && (
-                  <PixelText size="xs" color={collected ? colors.teal : colors.mutedForeground}>
-                    {collected ? `Collected: ${dest.collectibleName}` : `Collectible: ${dest.collectibleName}`}
-                  </PixelText>
-                )}
-              </View>
-            </View>
-          );
-        })}
+          ) : (
+            <PixelText size="xs" color={colors.mutedForeground} align="center">
+              No friends yet. Talk to locals to build relationships!
+            </PixelText>
+          )}
+        </View>
 
         <PixelButton onPress={backToExploring} variant="secondary">
           BACK TO EXPLORING
@@ -223,17 +377,25 @@ export function CollectionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    overflow: "hidden",
+  },
+  topFixedColumn: {
+    flexShrink: 0,
+    zIndex: 2,
+    elevation: 4,
   },
   header: {
     borderBottomWidth: 3,
     gap: 8,
   },
-  progressBar: {
-    height: 6,
-    overflow: "hidden",
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  progressFill: {
-    height: 6,
+  quitButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
   scroll: {
     flex: 1,
@@ -246,6 +408,10 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 4,
   },
+  subsection: {
+    gap: 8,
+    marginTop: 8,
+  },
   itemsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -256,6 +422,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
+  collectableIconRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
   tipGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -264,42 +435,35 @@ const styles = StyleSheet.create({
   },
   tipCard: {
     width: "47%",
+    aspectRatio: 1,
     borderWidth: 2,
-    padding: 8,
-    gap: 4,
+    padding: 0,
+    gap: 0,
   },
   tipImageWrap: {
     width: "100%",
-    height: 72,
+    height: "100%",
     borderRadius: 4,
     overflow: "hidden",
   },
-  destCard: {
-    borderWidth: 2,
-    padding: 12,
+  friendsGrid: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  destStamp: {
-    width: 52,
-    height: 52,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  destInfo: {
-    flex: 1,
-    gap: 3,
-  },
-  destNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
     flexWrap: "wrap",
+    gap: 10,
+    marginTop: 8,
   },
-  hereBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+  friendCard: {
+    width: "47%",
+    borderWidth: 2,
+    padding: 10,
+    gap: 4,
+    alignItems: "center",
+  },
+  friendEmoji: {
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
   },
 });

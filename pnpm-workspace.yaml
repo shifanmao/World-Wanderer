@@ -33,6 +33,10 @@ minimumReleaseAgeExclude:
   # this setting guards against does not apply to our own packages.
   - '@replit/*'
   - stripe-replit-sync
+  # Expo packages are published by Expo (acquired by Microsoft) and are trusted
+  - 'expo*'
+  - '@expo/*'
+  - babel-preset-expo
 
 packages:
   - artifacts/*

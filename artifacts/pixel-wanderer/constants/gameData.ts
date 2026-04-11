@@ -6,7 +6,52 @@ export interface Character {
   tip?: string;
   tipAction?: TravelerTipAction;
   earningOnTalk?: EarningOpportunity;
+  energyCost?: number; // Energy cost to talk to this character
 }
+
+export interface PlayableCharacter {
+  id: string;
+  name: string;
+  sprite: string;
+  description: string;
+  startingBudget: number;
+  startingEnergy: number;
+}
+
+export const PLAYABLE_CHARACTERS: PlayableCharacter[] = [
+  {
+    id: "budget_traveler",
+    name: "Budget Backpacker",
+    sprite: "🎒",
+    description: "Starts with more budget but less energy. Perfect for players who love planning ahead.",
+    startingBudget: 600,
+    startingEnergy: 40,
+  },
+  {
+    id: "energetic_explorer",
+    name: "Energetic Explorer",
+    sprite: "🏃",
+    description: "High energy but modest budget. Great for players who want to see and do everything.",
+    startingBudget: 450,
+    startingEnergy: 60,
+  },
+  {
+    id: "balanced_wanderer",
+    name: "Balanced Wanderer",
+    sprite: "🌍",
+    description: "A perfect balance of budget and energy. Ideal for first-time players.",
+    startingBudget: 500,
+    startingEnergy: 50,
+  },
+  {
+    id: "risk_taker",
+    name: "Risk Taker",
+    sprite: "🎲",
+    description: "Low budget and energy, but you'll earn bonus points for every achievement.",
+    startingBudget: 400,
+    startingEnergy: 45,
+  },
+];
 
 export interface TravelerTipAction {
   id: string;
@@ -39,10 +84,17 @@ export interface Destination {
   description: string;
   lodgingCost: number;
   flightCosts: Record<string, number>;
-  people: Character[];
-  collectibleName: string;
+  flightDurations: Record<string, number>; // in hours
   atmosphere: string;
+  collectibleName: string;
+  collectibleTheme: string;
+  additionalCollectibles?: { name: string; theme: string }[];
   earningOpportunities: EarningOpportunity[];
+  people: Character[];
+  localMeal: {
+    name: string;
+    imageUri: string;
+  };
 }
 
 export const DESTINATIONS: Destination[] = [
@@ -64,8 +116,26 @@ export const DESTINATIONS: Destination[] = [
       marrakech: 200,
       reykjavik: 220,
     },
+    flightDurations: {
+      tokyo: 12,
+      macchu_picchu: 13,
+      cairo: 3,
+      kyoto: 12,
+      santorini: 3,
+      marrakech: 3,
+      reykjavik: 4,
+    },
     atmosphere: "Romantic & Grand",
     collectibleName: "Eiffel Miniature",
+    collectibleTheme: "Landmarks",
+    additionalCollectibles: [
+      { name: "Louvre Sketchbook", theme: "Art" },
+      { name: "Montmartre Painting", theme: "Art" },
+    ],
+    localMeal: {
+      name: "Croissant & Café",
+      imageUri: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400",
+    },
     earningOpportunities: [
       {
         id: "paris_seine_sketch",
@@ -109,6 +179,7 @@ export const DESTINATIONS: Destination[] = [
         id: "pierre",
         name: "Pierre",
         sprite: "🧑‍🍳",
+        energyCost: 10,
         dialogues: [
           "Ah, bienvenue! You have arrived at the most beautiful city in the world.",
           "The croissants at the corner bakery are worth every centime. Try one before you leave!",
@@ -126,7 +197,7 @@ export const DESTINATIONS: Destination[] = [
           outcome: "You wander quiet halls and leave with a sketchbook full of ideas.",
           collectibleName: "Louvre Night Memory",
           rewardImageUri:
-            "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1550340499-a6c60fc8287c?auto=format&fit=crop&w=300&q=30&blur=2",
         },
         earningOnTalk: {
           id: "pierre_work",
@@ -142,6 +213,7 @@ export const DESTINATIONS: Destination[] = [
         id: "amelie",
         name: "Amélie",
         sprite: "👩‍🎨",
+        energyCost: 12,
         dialogues: [
           "I paint the Seine every morning. Each day it looks different.",
           "Tourists rush to the Eiffel Tower, but the real Paris is in Montmartre.",
@@ -168,8 +240,26 @@ export const DESTINATIONS: Destination[] = [
       marrakech: 1000,
       reykjavik: 1050,
     },
+    flightDurations: {
+      paris: 12,
+      macchu_picchu: 18,
+      cairo: 11,
+      kyoto: 2,
+      santorini: 12,
+      marrakech: 13,
+      reykjavik: 14,
+    },
     atmosphere: "Electric & Ancient",
     collectibleName: "Torii Gate Charm",
+    collectibleTheme: "Landmarks",
+    additionalCollectibles: [
+      { name: "Suica Card", theme: "Transport" },
+      { name: "Maneki Neko", theme: "Cultural" },
+    ],
+    localMeal: {
+      name: "Ramen Bowl",
+      imageUri: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400",
+    },
     earningOpportunities: [
       {
         id: "tokyo_ramen",
@@ -213,6 +303,7 @@ export const DESTINATIONS: Destination[] = [
         id: "kenji",
         name: "Kenji",
         sprite: "👨‍💼",
+        energyCost: 10,
         dialogues: [
           "Welcome to Tokyo. Please enjoy our city.",
           "The ramen in Shibuya — go after midnight when the salarymen arrive.",
@@ -230,7 +321,7 @@ export const DESTINATIONS: Destination[] = [
           outcome: "Station gates open instantly, and your travel day becomes effortless.",
           collectibleName: "Suica Card Memory",
           rewardImageUri:
-            "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=30&blur=2",
         },
         earningOnTalk: {
           id: "kenji_translation",
@@ -246,6 +337,7 @@ export const DESTINATIONS: Destination[] = [
         id: "yuki",
         name: "Yuki",
         sprite: "👩‍🔬",
+        energyCost: 15,
         dialogues: [
           "I study bioluminescence. Tokyo glows differently than other cities.",
           "Akihabara is overwhelming on purpose. Take breaks.",
@@ -272,8 +364,26 @@ export const DESTINATIONS: Destination[] = [
       marrakech: 850,
       reykjavik: 750,
     },
+    flightDurations: {
+      paris: 13,
+      tokyo: 18,
+      cairo: 14,
+      kyoto: 19,
+      santorini: 14,
+      marrakech: 13,
+      reykjavik: 12,
+    },
     atmosphere: "Mystical & Ancient",
     collectibleName: "Inca Sun Stone",
+    collectibleTheme: "Ancient Artifacts",
+    additionalCollectibles: [
+      { name: "Alpaca Wool Textile", theme: "Crafts" },
+      { name: "Coca Tea Tin", theme: "Local" },
+    ],
+    localMeal: {
+      name: "Ceviche",
+      imageUri: "https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=400",
+    },
     earningOpportunities: [
       {
         id: "machu_carry",
@@ -308,6 +418,7 @@ export const DESTINATIONS: Destination[] = [
         id: "inti",
         name: "Inti",
         sprite: "🧑‍🌾",
+        energyCost: 10,
         dialogues: [
           "The sun rises differently here. It is why the Inca chose this place.",
           "Coca tea for altitude sickness. Drink it slowly. Rest the first day.",
@@ -325,7 +436,7 @@ export const DESTINATIONS: Destination[] = [
           outcome: "Your summit view is breathtaking, and the whole valley opens below you.",
           collectibleName: "Huayna Summit Memory",
           rewardImageUri:
-            "https://images.unsplash.com/photo-1587595431973-160bd0cccb61?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=300&q=30&blur=2",
         },
         earningOnTalk: {
           id: "inti_guide",
@@ -341,6 +452,7 @@ export const DESTINATIONS: Destination[] = [
         id: "rosa",
         name: "Rosa",
         sprite: "👩‍🦱",
+        energyCost: 12,
         dialogues: [
           "I carry goods up this path every week. The travelers complain about the altitude.",
           "There is a town at the base — Aguas Calientes. The hot springs help tired legs.",
@@ -354,7 +466,7 @@ export const DESTINATIONS: Destination[] = [
     name: "Cairo",
     country: "Egypt",
     continent: "Africa",
-    image: null,
+    image: { uri: "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?auto=format&fit=crop&w=400&q=80" },
     description:
       "Pyramids rise from the desert edge. A city ancient beyond measure where old meets chaotic new.",
     lodgingCost: 45,
@@ -367,8 +479,26 @@ export const DESTINATIONS: Destination[] = [
       marrakech: 350,
       reykjavik: 400,
     },
+    flightDurations: {
+      paris: 3,
+      tokyo: 11,
+      macchu_picchu: 14,
+      kyoto: 11,
+      santorini: 4,
+      marrakech: 5,
+      reykjavik: 6,
+    },
     atmosphere: "Ancient & Bustling",
     collectibleName: "Scarab Amulet",
+    collectibleTheme: "Ancient Artifacts",
+    additionalCollectibles: [
+      { name: "Papyrus Scroll", theme: "Art" },
+      { name: "Spice Blend", theme: "Local" },
+    ],
+    localMeal: {
+      name: "Koshary",
+      imageUri: "https://images.unsplash.com/photo-1585937421612-70a008356f36?w=400",
+    },
     earningOpportunities: [
       {
         id: "cairo_pyramid_photo",
@@ -429,7 +559,7 @@ export const DESTINATIONS: Destination[] = [
           outcome: "The site is nearly empty, and the first light makes the stone glow gold.",
           collectibleName: "Sphinx Sunrise Memory",
           rewardImageUri:
-            "https://images.unsplash.com/photo-1539650116574-75c0c6d73a6e?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?auto=format&fit=crop&w=300&q=30&blur=2",
         },
         earningOnTalk: {
           id: "omar_history_tour",
@@ -458,7 +588,7 @@ export const DESTINATIONS: Destination[] = [
     name: "Kyoto",
     country: "Japan",
     continent: "Asia",
-    image: null,
+    image: { uri: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=400&q=80" },
     description:
       "Temples, geisha districts, bamboo forests. Japan's ancient capital moves in whispers and ceremony.",
     lodgingCost: 85,
@@ -471,8 +601,26 @@ export const DESTINATIONS: Destination[] = [
       marrakech: 1010,
       reykjavik: 1060,
     },
+    flightDurations: {
+      paris: 12,
+      tokyo: 2,
+      macchu_picchu: 19,
+      cairo: 11,
+      santorini: 12,
+      marrakech: 13,
+      reykjavik: 14,
+    },
     atmosphere: "Serene & Sacred",
     collectibleName: "Bamboo Flute",
+    collectibleTheme: "Cultural Items",
+    additionalCollectibles: [
+      { name: "Tea Ceremony Set", theme: "Cultural" },
+      { name: "Zen Garden Stone", theme: "Nature" },
+    ],
+    localMeal: {
+      name: "Matcha & Wagashi",
+      imageUri: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400",
+    },
     earningOpportunities: [
       {
         id: "kyoto_bamboo",
@@ -507,6 +655,7 @@ export const DESTINATIONS: Destination[] = [
         id: "hiroshi",
         name: "Hiroshi",
         sprite: "🧓",
+        energyCost: 12,
         dialogues: [
           "I tend the moss garden here. It takes twenty years to look like nothing.",
           "The tea ceremony is not about tea. It is about presence.",
@@ -524,7 +673,7 @@ export const DESTINATIONS: Destination[] = [
           outcome: "Lantern-lit lanes and whispered stories make the district unforgettable.",
           collectibleName: "Gion Lantern Memory",
           rewardImageUri:
-            "https://images.unsplash.com/photo-1493976040374-85c8e8c0c7e0?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1624253321171-1be53e12f5f4?auto=format&fit=crop&w=300&q=30&blur=2",
         },
         earningOnTalk: {
           id: "hiroshi_moss",
@@ -558,8 +707,26 @@ export const DESTINATIONS: Destination[] = [
       marrakech: 230,
       reykjavik: 300,
     },
+    flightDurations: {
+      paris: 3,
+      tokyo: 12,
+      macchu_picchu: 14,
+      cairo: 4,
+      kyoto: 12,
+      marrakech: 5,
+      reykjavik: 6,
+    },
     atmosphere: "Dreamlike & Volcanic",
     collectibleName: "Aegean Blue Tile",
+    collectibleTheme: "Natural Wonders",
+    additionalCollectibles: [
+      { name: "Volcanic Pumice", theme: "Nature" },
+      { name: "Oia Sunset Photo", theme: "Art" },
+    ],
+    localMeal: {
+      name: "Greek Salad & Feta",
+      imageUri: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400",
+    },
     earningOpportunities: [
       {
         id: "santorini_sunset",
@@ -611,7 +778,7 @@ export const DESTINATIONS: Destination[] = [
           outcome: "You sail through cobalt water and soak in mineral springs at sunset.",
           collectibleName: "Caldera Boat Memory",
           rewardImageUri:
-            "https://images.unsplash.com/photo-1613395877344-13d4c79e4284?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=300&q=30&blur=2",
         },
         earningOnTalk: {
           id: "stavros_kitchen",
@@ -630,7 +797,7 @@ export const DESTINATIONS: Destination[] = [
     name: "Marrakech",
     country: "Morocco",
     continent: "Africa",
-    image: null,
+    image: { uri: "https://images.unsplash.com/photo-1597213584356-53e5c953d26f?auto=format&fit=crop&w=400&q=80" },
     description:
       "A sensory labyrinth of souks, palaces, and riads. The medina has been alive for a thousand years.",
     lodgingCost: 55,
@@ -643,8 +810,26 @@ export const DESTINATIONS: Destination[] = [
       santorini: 230,
       reykjavik: 280,
     },
+    flightDurations: {
+      paris: 3,
+      tokyo: 13,
+      macchu_picchu: 13,
+      cairo: 5,
+      kyoto: 13,
+      santorini: 5,
+      reykjavik: 5,
+    },
     atmosphere: "Vivid & Labyrinthine",
     collectibleName: "Berber Lantern",
+    collectibleTheme: "Cultural Items",
+    additionalCollectibles: [
+      { name: "Leather Pouf", theme: "Crafts" },
+      { name: "Henna Cone Set", theme: "Art" },
+    ],
+    localMeal: {
+      name: "Tagine",
+      imageUri: "https://images.unsplash.com/photo-1585937421612-70a008356f36?w=400",
+    },
     earningOpportunities: [
       {
         id: "marrakech_souk_guide",
@@ -705,7 +890,7 @@ export const DESTINATIONS: Destination[] = [
           outcome: "You wake to birdsong in a tiled courtyard and feel the city differently.",
           collectibleName: "Riad Courtyard Memory",
           rewardImageUri:
-            "https://images.unsplash.com/photo-1597212618440-806262de4f6b?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1568735052543-6b7df6b662aa?auto=format&fit=crop&w=300&q=30&blur=2",
         },
         earningOnTalk: {
           id: "hassan_leather",
@@ -724,7 +909,7 @@ export const DESTINATIONS: Destination[] = [
     name: "Reykjavik",
     country: "Iceland",
     continent: "Europe",
-    image: null,
+    image: { uri: "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=400&q=80" },
     description:
       "The world's northernmost capital. Geysers, aurora borealis, and a city that never quite gets dark in summer.",
     lodgingCost: 180,
@@ -737,8 +922,26 @@ export const DESTINATIONS: Destination[] = [
       santorini: 300,
       marrakech: 280,
     },
+    flightDurations: {
+      paris: 4,
+      tokyo: 14,
+      macchu_picchu: 12,
+      cairo: 6,
+      kyoto: 14,
+      santorini: 6,
+      marrakech: 5,
+    },
     atmosphere: "Wild & Ethereal",
     collectibleName: "Volcanic Obsidian",
+    collectibleTheme: "Natural Wonders",
+    additionalCollectibles: [
+      { name: "Northern Lights Photo", theme: "Nature" },
+      { name: "Geothermal Stone", theme: "Nature" },
+    ],
+    localMeal: {
+      name: "Icelandic Lamb Soup",
+      imageUri: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400",
+    },
     earningOpportunities: [
       {
         id: "reykjavik_aurora",
@@ -782,6 +985,7 @@ export const DESTINATIONS: Destination[] = [
         id: "sigrid",
         name: "Sigrid",
         sprite: "👩‍🦲",
+        energyCost: 15,
         dialogues: [
           "Icelanders do not believe in elves officially. We also do not build roads through their hills.",
           "The Blue Lagoon is for tourists. Go to the Secret Lagoon in Flúðir instead.",
@@ -799,7 +1003,7 @@ export const DESTINATIONS: Destination[] = [
           outcome: "Waterfalls, lava fields, and empty roads turn your trip into an expedition.",
           collectibleName: "Ring Road Memory",
           rewardImageUri:
-            "https://images.unsplash.com/photo-1504893524553-b855bce32c67?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=300&q=30&blur=2"
         },
         earningOnTalk: {
           id: "sigrid_research",
@@ -846,5 +1050,5 @@ export const getRandomDestination = (): Destination => {
   return DESTINATIONS[Math.floor(Math.random() * DESTINATIONS.length)];
 };
 
-export const STARTING_BUDGET = 2000;
+export const STARTING_BUDGET = 500;
 export const LODGING_DAYS = 1;

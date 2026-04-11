@@ -6,7 +6,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { STARTING_BUDGET } from "@/constants/gameData";
 import { PixelatedImage } from "@/components/PixelatedImage";
 import { PixelButton } from "@/components/PixelButton";
 import { PixelText } from "@/components/PixelText";
@@ -18,11 +17,12 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { state, setPhase, resetGame } = useGame();
   const dest = state.currentDestination;
+  const character = state.selectedCharacter;
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
   const titleTopPad = Platform.OS === "web" ? 8 : insets.top;
 
-  if (!dest) return null;
+  if (!dest || !character) return null;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.navy }]}>
@@ -78,13 +78,43 @@ export function HomeScreen() {
           </View>
         </View>
 
+        <View style={[styles.characterBadge, { borderColor: colors.gold, backgroundColor: colors.navyLight }]}>
+          <PixelText size="xs" color={colors.gold} bold align="center">
+            {character.sprite} {character.name}
+          </PixelText>
+          <PixelText size="xs" color={colors.mutedForeground} align="center">
+            {character.description}
+          </PixelText>
+        </View>
+
         <View style={[styles.notice, { borderColor: colors.border, backgroundColor: colors.navyLight }]}>
           <PixelText size="xs" color={colors.tealLight} bold>
             STARTING KIT
           </PixelText>
-          <PixelText size="sm" color={colors.parchment}>
-            Operating budget: ${STARTING_BUDGET.toLocaleString()} · Day {state.dayCount}
-          </PixelText>
+          <View style={styles.statRow}>
+            <PixelText size="sm" color={colors.parchmentDark}>
+              💰 Budget:
+            </PixelText>
+            <PixelText size="sm" color={colors.gold} bold>
+              ${character.startingBudget.toLocaleString()}
+            </PixelText>
+          </View>
+          <View style={styles.statRow}>
+            <PixelText size="sm" color={colors.parchmentDark}>
+              ⚡ Energy:
+            </PixelText>
+            <PixelText size="sm" color={colors.teal} bold>
+              {character.startingEnergy}
+            </PixelText>
+          </View>
+          <View style={styles.statRow}>
+            <PixelText size="sm" color={colors.parchmentDark}>
+              Day:
+            </PixelText>
+            <PixelText size="sm" color={colors.parchment}>
+              {state.dayCount}
+            </PixelText>
+          </View>
         </View>
 
         <PixelButton onPress={() => setPhase("arriving")} variant="primary">
@@ -138,5 +168,16 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     padding: 12,
     gap: 6,
+  },
+  characterBadge: {
+    borderWidth: 2,
+    padding: 12,
+    gap: 4,
+    marginBottom: 8,
+  },
+  statRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

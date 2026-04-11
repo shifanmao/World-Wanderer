@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Animated,
   Platform,
+  ScrollView,
   StyleSheet,
   View,
 } from "react-native";
@@ -15,7 +16,10 @@ import { useGame } from "@/context/GameContext";
 export function GameOverScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { state, resetGame } = useGame();
+  const { state, resetGame, calculateReputation, loadHighScore } = useGame();
+
+  const [highScore, setHighScore] = useState(0);
+  const [finalReputation, setFinalReputation] = useState(0);
 
   const topPad = Platform.OS === "web" ? insets.top + 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -28,17 +32,69 @@ export function GameOverScreen() {
       duration: 1000,
       useNativeDriver: true,
     }).start();
-  }, []);
+
+    // Calculate final reputation and load high score
+    const reputation = calculateReputation();
+    setFinalReputation(reputation);
+
+    loadHighScore().then((score) => {
+      setHighScore(score);
+      if (reputation > score) {
+        // New high score - will be saved in GameContext checkGameOver
+      }
+    });
+  }, [calculateReputation, loadHighScore]);
 
   const spent = STARTING_BUDGET - state.budget;
   const completion = Math.round(
     (state.visitedDestinations.length / DESTINATIONS.length) * 100,
   );
 
+  const friends = useMemo(() => {
+    const highFamiliarityThreshold = 5;
+    const friendList: Array<{
+      name: string;
+      sprite: string;
+      destinationName: string;
+      familiarity: number;
+    }> = [];
+
+    DESTINATIONS.forEach((dest) => {
+      dest.people.forEach((person) => {
+        const familiarityKey = `${dest.id}_${person.id}`;
+        const familiarity = state.familiarity[familiarityKey] || 0;
+        if (familiarity >= highFamiliarityThreshold) {
+          friendList.push({
+            name: person.name,
+            sprite: person.sprite,
+            destinationName: dest.name,
+            familiarity,
+          });
+        }
+      });
+    });
+
+    return friendList;
+  }, [state.familiarity]);
+
+  const topDestinations = useMemo(() => {
+    const visited = DESTINATIONS.filter((d) =>
+      state.visitedDestinations.includes(d.id)
+    );
+    // Sort by number of visits (destinationVisitCounts)
+    return visited.sort((a, b) => {
+      const aVisits = state.destinationVisitCounts[a.id] || 1;
+      const bVisits = state.destinationVisitCounts[b.id] || 1;
+      return bVisits - aVisits;
+    }).slice(0, 3);
+  }, [state.visitedDestinations, state.destinationVisitCounts]);
+
   let rank = "ROOKIE TRAVELER";
-  if (state.visitedDestinations.length >= 6) rank = "WORLD WANDERER";
-  else if (state.visitedDestinations.length >= 4) rank = "GLOBE TROTTER";
-  else if (state.visitedDestinations.length >= 2) rank = "EXPLORER";
+  if (finalReputation >= 500) rank = "WORLD WANDERER";
+  else if (finalReputation >= 300) rank = "GLOBE TROTTER";
+  else if (finalReputation >= 150) rank = "EXPLORER";
+
+  const isNewHighScore = finalReputation > highScore;
 
   return (
     <Animated.View
@@ -47,11 +103,13 @@ export function GameOverScreen() {
         { opacity: fadeAnim, backgroundColor: colors.navy },
       ]}
     >
-      <View
-        style={[
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
           styles.content,
           { paddingTop: topPad + 24, paddingBottom: bottomPad + 24 },
         ]}
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.titleArea}>
           <PixelText size="xs" color={colors.mutedForeground} align="center">
@@ -61,10 +119,23 @@ export function GameOverScreen() {
             THE END
           </PixelText>
           <View style={[styles.divider, { backgroundColor: colors.gold }]} />
+          {state.outOfActionsMessage && (
+            <PixelText size="md" color={colors.red} bold align="center">
+              {state.outOfActionsMessage}
+            </PixelText>
+          )}
           <PixelText size="lg" color={colors.parchment} bold align="center">
             {rank}
           </PixelText>
         </View>
+
+        {isNewHighScore && (
+          <View style={[styles.newHighScoreBox, { backgroundColor: colors.gold + "22", borderColor: colors.gold }]}>
+            <PixelText size="sm" color={colors.gold} bold align="center">
+              🎉 NEW HIGH SCORE! 🎉
+            </PixelText>
+          </View>
+        )}
 
         <View style={[styles.statsBox, { backgroundColor: colors.navyLight, borderColor: colors.gold }]}>
           <PixelText size="xs" color={colors.gold} bold align="center">
@@ -72,16 +143,19 @@ export function GameOverScreen() {
           </PixelText>
 
           {[
-            { label: "Destinations Visited", value: `${state.visitedDestinations.length} / ${DESTINATIONS.length}` },
-            { label: "World Explored", value: `${completion}%` },
-            { label: "Days Traveled", value: `${state.dayCount}` },
-            { label: "Budget Spent", value: `$${spent.toLocaleString()}` },
-            { label: "Budget Remaining", value: `$${state.budget.toLocaleString()}` },
-            { label: "Items Collected", value: `${state.collectedItems.length}` },
-          ].map(({ label, value }) => (
+            { label: "Total Reputation", value: finalReputation.toString(), highlight: true },
+            { label: "High Score", value: highScore.toString(), highlight: false },
+            { label: "Destinations Visited", value: `${state.visitedDestinations.length} / ${DESTINATIONS.length}`, highlight: false },
+            { label: "World Explored", value: `${completion}%`, highlight: false },
+            { label: "Days Traveled", value: `${state.dayCount}`, highlight: false },
+            { label: "Budget Spent", value: `$${spent.toLocaleString()}`, highlight: false },
+            { label: "Budget Remaining", value: `$${state.budget.toLocaleString()}`, highlight: false },
+            { label: "Items Collected", value: `${state.collectedItems.length}`, highlight: false },
+            { label: "Memories Collected", value: `${state.collectedTipActionIds.length}`, highlight: false },
+          ].map(({ label, value, highlight }) => (
             <View key={label} style={[styles.statRow, { borderColor: colors.border }]}>
               <PixelText size="sm" color={colors.parchmentDark}>{label}</PixelText>
-              <PixelText size="sm" color={colors.gold} bold>{value}</PixelText>
+              <PixelText size="sm" color={highlight ? colors.gold : colors.parchment} bold={highlight}>{value}</PixelText>
             </View>
           ))}
         </View>
@@ -99,12 +173,38 @@ export function GameOverScreen() {
           </View>
         )}
 
+        {friends.length > 0 && (
+          <View style={[styles.itemsArea, { backgroundColor: colors.navyLight, borderColor: colors.teal, borderWidth: 2, padding: 12 }]}>
+            <PixelText size="xs" color={colors.gold} bold align="center">
+              FRIENDS MADE ({friends.length})
+            </PixelText>
+            {friends.slice(0, 5).map((friend) => (
+              <PixelText key={friend.name} size="xs" color={colors.parchment} align="center">
+                {friend.sprite} {friend.name} ({friend.destinationName})
+              </PixelText>
+            ))}
+          </View>
+        )}
+
+        {topDestinations.length > 0 && (
+          <View style={[styles.itemsArea, { backgroundColor: colors.navyLight, borderColor: colors.gold, borderWidth: 2, padding: 12 }]}>
+            <PixelText size="xs" color={colors.gold} bold align="center">
+              TOP DESTINATIONS
+            </PixelText>
+            {topDestinations.map((dest) => (
+              <PixelText key={dest.id} size="xs" color={colors.parchment} align="center">
+                {dest.name} ({state.destinationVisitCounts[dest.id] || 1} visits)
+              </PixelText>
+            ))}
+          </View>
+        )}
+
         <View style={styles.buttonArea}>
           <PixelButton onPress={resetGame} variant="primary">
             NEW JOURNEY
           </PixelButton>
         </View>
-      </View>
+      </ScrollView>
     </Animated.View>
   );
 }
@@ -113,11 +213,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
+  scroll: {
     flex: 1,
+  },
+  content: {
     paddingHorizontal: 24,
     gap: 24,
-    justifyContent: "space-between",
   },
   titleArea: {
     alignItems: "center",
@@ -145,5 +246,10 @@ const styles = StyleSheet.create({
   },
   buttonArea: {
     gap: 8,
+  },
+  newHighScoreBox: {
+    borderWidth: 2,
+    padding: 12,
+    marginBottom: 16,
   },
 });

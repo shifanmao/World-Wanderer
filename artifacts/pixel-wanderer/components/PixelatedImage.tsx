@@ -8,6 +8,8 @@ import {
   type ViewStyle,
 } from "react-native";
 import { Image } from "expo-image";
+import { PixelText } from "./PixelText";
+import { useColors } from "@/hooks/useColors";
 
 export type PixelatedImageSource =
   | ImageSourcePropType
@@ -32,7 +34,9 @@ export function PixelatedImage({
   style,
   rounded = false,
 }: Props) {
+  const colors = useColors();
   const [size, setSize] = useState({ w: 0, h: 0 });
+  const [hasError, setHasError] = useState(false);
 
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -66,27 +70,49 @@ export function PixelatedImage({
       onLayout={onLayout}
     >
       {w > 0 && h > 0 && (
-        <View
-          style={[
-            styles.pixelWrap,
-            {
-              width: smallW,
-              height: smallH,
-              transform: [{ scale }],
-              transformOrigin: "left top",
-            },
-          ]}
-        >
-          <Image
-            source={source as ImageSourcePropType}
-            style={[
-              { width: smallW, height: smallH },
-              webPixelStyle,
-            ]}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-          />
-        </View>
+        <>
+          {!hasError ? (
+            <View
+              style={[
+                styles.pixelWrap,
+                {
+                  width: smallW,
+                  height: smallH,
+                  transform: [{ scale }],
+                  transformOrigin: "left top",
+                },
+              ]}
+            >
+              <Image
+                source={source as ImageSourcePropType}
+                style={[
+                  { width: smallW, height: smallH },
+                  webPixelStyle,
+                ]}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                onError={() => setHasError(true)}
+              />
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.fallback,
+                {
+                  width: smallW,
+                  height: smallH,
+                  transform: [{ scale }],
+                  transformOrigin: "left top",
+                  backgroundColor: colors.navyLight,
+                },
+              ]}
+            >
+              <PixelText size="xs" color={colors.mutedForeground} align="center">
+                📷
+              </PixelText>
+            </View>
+          )}
+        </>
       )}
     </View>
   );
@@ -107,5 +133,14 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     overflow: "hidden",
+  },
+  fallback: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#333",
   },
 });
