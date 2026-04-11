@@ -1,0 +1,18 @@
+* Introduce a few systems to the game:
+1) Energy level: that can be consumed with any action taken such as taking a flight to a new destination, some travel tip action, talking with a local does not consume any energy level. Energy level will be replenished after taking a night lodging.
+
+2) Character choice: in the first screen users will choose a character with starting budget and energy points from 4 different characters.
+
+3) Points, and that is the goal of the game, reaching highest points as possible before game is over. The points are evaluated based a combination of things including value of the collectable, destinations traveleled, and other trip memories.
+
+4) Familiarity with locals. This is displayed along with the person next to the person. The more familiar you’re with someone, the more you’re likely to have money earning opportunities following the talk. Familiarity level starts with 0 and gradually increase with talks.
+
+More important aspect is that now games can be over, and the ending game condition is either running out of budget or energy points. The player can now restart the game after the game is over, and the historical high is always recorded until record is broken.
+
+Some more details to polish
+1) conversations should never be the same. For this reason, you can only talk to a local limited number of times, each time you visit the place, or revisit the place.
+2) travel memories and collectables should always have an image, and when clicked, the image is enlarged for admiration.
+3) the locals are not always the same persons. Old people can show up, or sometimes not available. New people with zero familiarity can also show up. But always no more than 2 locals you can talk to in the same place on the same day. But locals rotate after each night’s rest, or after you’ve taken a flight.
+4) simplify rename ‘rest another night’ to ‘rest a night’. After a rest, locals can rotate as mentioned above, so can the new job earning opportunities or collectables, or travel opportunities can show up.
+
+Build in these features with simple design, and also playability in mind. Playablility includes the highlighted game goal with high scores within constraints and repeatable rounds of replays, and interesting storylines with talks and travel experiences, and random surprises sprinkled.
