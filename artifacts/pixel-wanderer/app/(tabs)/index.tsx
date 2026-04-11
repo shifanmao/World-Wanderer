@@ -4,6 +4,8 @@ import { useGame } from "@/context/GameContext";
 import { TitleScreen } from "@/screens/TitleScreen";
 import { TutorialScreen } from "@/screens/TutorialScreen";
 import { CharacterSelectScreen } from "@/screens/CharacterSelectScreen";
+import { WorldMapScreen } from "@/screens/WorldMapScreen";
+import { LifetimeJournalScreen } from "@/screens/LifetimeJournalScreen";
 import { HomeScreen } from "@/screens/HomeScreen";
 import { ArrivingScreen } from "@/screens/ArrivingScreen";
 import { ExploreScreen } from "@/screens/ExploreScreen";
@@ -32,6 +34,10 @@ export default function GameScreen() {
         return <TutorialScreen />;
       case "character_select":
         return <CharacterSelectScreen />;
+      case "world_map":
+        return <WorldMapScreen />;
+      case "lifetime_journal":
+        return <LifetimeJournalScreen />;
       case "home":
         return <HomeScreen />;
       case "arriving":

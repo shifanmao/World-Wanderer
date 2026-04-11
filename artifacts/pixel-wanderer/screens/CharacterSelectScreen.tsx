@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -15,17 +16,20 @@ import { useGame } from "@/context/GameContext";
 export function CharacterSelectScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { selectCharacter } = useGame();
+  const { selectCharacter, setPhase } = useGame();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const topPad = Platform.OS === "web" ? insets.top + 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  const selected = PLAYABLE_CHARACTERS.find((c) => c.id === selectedId);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.navy }]}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: topPad + 32, paddingBottom: bottomPad + 20 },
+          { paddingTop: topPad + 24, paddingBottom: bottomPad + 20 },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -36,69 +40,133 @@ export function CharacterSelectScreen() {
           <PixelText size="lg" color={colors.gold} bold align="center" shadow>
             WHO WILL YOU BE?
           </PixelText>
-          <PixelText size="sm" color={colors.parchmentDark} align="center">
-            Each character starts with different resources.
-          </PixelText>
         </View>
 
-        {PLAYABLE_CHARACTERS.map((character) => (
-          <View
-            key={character.id}
-            style={[
-              styles.characterCard,
-              { backgroundColor: colors.navyLight, borderColor: colors.teal },
-            ]}
-          >
-            <View
-              style={[
-                styles.characterSprite,
-                { backgroundColor: colors.navy, borderColor: colors.gold },
-              ]}
-            >
-              <PixelText size="xxl" align="center">
-                {character.sprite}
-              </PixelText>
-            </View>
-            <View style={styles.characterInfo}>
-              <PixelText size="lg" color={colors.parchment} bold>
-                {character.name}
-              </PixelText>
-              <PixelText size="xs" color={colors.mutedForeground}>
-                {character.description}
-              </PixelText>
-              <View style={styles.stats}>
-                <View style={styles.statItem}>
-                  <PixelText size="xs" color={colors.gold} bold>
-                    Budget
-                  </PixelText>
-                  <PixelText size="sm" color={colors.parchment}>
-                    ${character.startingBudget}
+        <View style={styles.cardRow}>
+          {PLAYABLE_CHARACTERS.map((character) => {
+            const isSelected = selectedId === character.id;
+            return (
+              <Pressable
+                key={character.id}
+                onPress={() => setSelectedId(isSelected ? null : character.id)}
+                style={[
+                  styles.characterCard,
+                  {
+                    backgroundColor: isSelected ? colors.navyLight : colors.navy,
+                    borderColor: isSelected ? colors.gold : colors.border,
+                    borderWidth: isSelected ? 3 : 2,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.spriteBox,
+                    {
+                      backgroundColor: isSelected ? colors.navy : colors.navyLight,
+                      borderColor: isSelected ? colors.gold : colors.teal,
+                    },
+                  ]}
+                >
+                  <PixelText size="xl" align="center">
+                    {character.sprite}
                   </PixelText>
                 </View>
-                <View style={styles.statItem}>
-                  <PixelText size="xs" color={colors.teal} bold>
-                    Energy
-                  </PixelText>
-                  <PixelText size="sm" color={colors.parchment}>
-                    {character.startingEnergy}
-                  </PixelText>
+                <PixelText
+                  size="md"
+                  color={isSelected ? colors.gold : colors.parchment}
+                  bold
+                  align="center"
+                >
+                  {character.name}
+                </PixelText>
+                {isSelected && (
+                  <View
+                    style={[
+                      styles.selectedBadge,
+                      { backgroundColor: colors.gold },
+                    ]}
+                  >
+                    <PixelText size="xs" color={colors.navy} bold>
+                      CHOSEN
+                    </PixelText>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {selected ? (
+          <View
+            style={[
+              styles.detailPanel,
+              { backgroundColor: colors.navyLight, borderColor: colors.gold },
+            ]}
+          >
+            <View style={styles.detailHeader}>
+              <PixelText size="xxl">{selected.sprite}</PixelText>
+              <View style={styles.detailHeadText}>
+                <PixelText size="lg" color={colors.gold} bold>
+                  {selected.name}
+                </PixelText>
+                <View style={styles.statsRow}>
+                  <View
+                    style={[
+                      styles.statPill,
+                      { backgroundColor: colors.navy, borderColor: colors.gold },
+                    ]}
+                  >
+                    <PixelText size="xs" color={colors.gold} bold>
+                      BUDGET
+                    </PixelText>
+                    <PixelText size="sm" color={colors.parchment} bold>
+                      ${selected.startingBudget}
+                    </PixelText>
+                  </View>
+                  <View
+                    style={[
+                      styles.statPill,
+                      { backgroundColor: colors.navy, borderColor: colors.teal },
+                    ]}
+                  >
+                    <PixelText size="xs" color={colors.teal} bold>
+                      ENERGY
+                    </PixelText>
+                    <PixelText size="sm" color={colors.parchment} bold>
+                      {selected.startingEnergy}
+                    </PixelText>
+                  </View>
                 </View>
               </View>
             </View>
-            <PixelButton
-              onPress={() => selectCharacter(character.id)}
-              variant="primary"
-              style={{ alignSelf: "center" }}
-            >
-              SELECT
-            </PixelButton>
+            <View style={[styles.divider, { backgroundColor: colors.gold }]} />
+            <PixelText size="sm" color={colors.parchmentDark}>
+              {selected.description}
+            </PixelText>
           </View>
-        ))}
+        ) : (
+          <View
+            style={[
+              styles.hintBox,
+              { backgroundColor: colors.navyLight, borderColor: colors.border },
+            ]}
+          >
+            <PixelText size="sm" color={colors.mutedForeground} align="center">
+              Tap a traveler to learn more
+            </PixelText>
+          </View>
+        )}
 
-        <PixelButton
-          onPress={() => selectCharacter("balanced_wanderer")}
-          variant="ghost"
-        >
+        {selected && (
+          <PixelButton
+            onPress={() => selectCharacter(selected.id)}
+            variant="primary"
+          >
+            BEGIN ADVENTURE AS {selected.name.toUpperCase()}
+          </PixelButton>
+        )}
+
+        <PixelButton onPress={() => setPhase("title")} variant="ghost">
           BACK TO TITLE
         </PixelButton>
       </ScrollView>
@@ -107,9 +175,7 @@ export function CharacterSelectScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 20,
     gap: 16,
@@ -117,33 +183,65 @@ const styles = StyleSheet.create({
   },
   titleArea: {
     alignItems: "center",
-    gap: 8,
-    marginBottom: 8,
+    gap: 6,
+    marginBottom: 4,
+  },
+  cardRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    justifyContent: "center",
   },
   characterCard: {
-    borderWidth: 2,
-    padding: 16,
-    flexDirection: "row",
+    width: "47%",
     alignItems: "center",
-    gap: 16,
+    padding: 12,
+    gap: 8,
+    minHeight: 110,
   },
-  characterSprite: {
-    width: 64,
-    height: 64,
+  spriteBox: {
+    width: 56,
+    height: 56,
     borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },
-  characterInfo: {
-    flex: 1,
-    gap: 6,
+  selectedBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
   },
-  stats: {
+  detailPanel: {
+    borderWidth: 2,
+    padding: 16,
+    gap: 12,
+  },
+  detailHeader: {
     flexDirection: "row",
-    gap: 16,
-    marginTop: 4,
+    alignItems: "center",
+    gap: 12,
   },
-  statItem: {
+  detailHeadText: {
+    flex: 1,
+    gap: 8,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  statPill: {
+    borderWidth: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    alignItems: "center",
     gap: 2,
+  },
+  divider: {
+    height: 2,
+    width: "100%",
+  },
+  hintBox: {
+    borderWidth: 1,
+    padding: 16,
+    alignItems: "center",
   },
 });

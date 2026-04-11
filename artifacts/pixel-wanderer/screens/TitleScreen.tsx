@@ -169,6 +169,9 @@ export function TitleScreen() {
             <PixelButton onPress={() => setPhase("tutorial")} variant="primary">
               BEGIN JOURNEY
             </PixelButton>
+            <PixelButton onPress={() => setPhase("lifetime_journal")} variant="ghost">
+              LIFETIME TRAVEL JOURNAL
+            </PixelButton>
           </Animated.View>
         </View>
 
@@ -226,6 +229,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     width: "100%",
+    gap: 10,
   },
   footer: {
     alignItems: "center",

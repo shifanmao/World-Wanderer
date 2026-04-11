@@ -16,7 +16,7 @@ import { useGame } from "@/context/GameContext";
 export function GameOverScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { state, resetGame, calculateReputation, loadHighScore } = useGame();
+  const { state, resetGame, calculateReputation, loadHighScore, saveLifetimeData } = useGame();
 
   const [highScore, setHighScore] = useState(0);
   const [finalReputation, setFinalReputation] = useState(0);
@@ -39,10 +39,10 @@ export function GameOverScreen() {
 
     loadHighScore().then((score) => {
       setHighScore(score);
-      if (reputation > score) {
-        // New high score - will be saved in GameContext checkGameOver
-      }
     });
+
+    // Save lifetime journal data
+    saveLifetimeData();
   }, [calculateReputation, loadHighScore]);
 
   const spent = STARTING_BUDGET - state.budget;

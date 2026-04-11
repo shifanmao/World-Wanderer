@@ -23,6 +23,8 @@ export type GamePhase =
   | "title"
   | "tutorial"
   | "character_select"
+  | "world_map"
+  | "lifetime_journal"
   | "home"
   | "arriving"
   | "exploring"
@@ -122,12 +124,20 @@ export interface GameState {
     imageUri: string;
     reputationGain: number;
   } | null;
+  /** Accumulated travel memories this game */
+  memories: Array<{
+    title: string;
+    description: string;
+    destName: string;
+    imageUri: string;
+  }>;
 }
 
 interface GameContextType {
   state: GameState;
   startGame: () => void;
   selectCharacter: (characterId: string) => void;
+  startFromCity: (destId: string) => void;
   arriveAtDestination: (dest: Destination) => void;
   payLodging: () => boolean;
   haveMeal: () => boolean;
@@ -158,6 +168,7 @@ interface GameContextType {
   triggerActionBarAnimation: () => void;
   dismissMealReward: () => void;
   dismissTravelMemory: () => void;
+  saveLifetimeData: () => Promise<void>;
 }
 
 const STORAGE_KEY = "@pixel_wanderer_save";
@@ -201,6 +212,7 @@ const initialState: GameState = {
   actionBarAnimation: false,
   mealReward: null,
   travelMemory: null,
+  memories: [],
 };
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -238,7 +250,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const saved = await AsyncStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.phase !== "title") {
+        if (parsed.phase !== "title" && parsed.phase !== "world_map" && parsed.phase !== "lifetime_journal") {
           // Merge with initialState so any new fields always have defaults
           const merged: GameState = { ...initialState, ...parsed };
           if (!Array.isArray(merged.collectedTipActionIds)) {
@@ -301,27 +313,37 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const selectCharacter = useCallback((characterId: string) => {
     const character = PLAYABLE_CHARACTERS.find(c => c.id === characterId);
     if (!character) return;
-
-    const dest = getRandomDestination();
-    
-    // Randomly select up to 2 people for the initial destination
-    const shuffledPeople = [...dest.people].sort(() => Math.random() - 0.5);
-    const availableLocals = shuffledPeople.slice(0, Math.min(2, shuffledPeople.length));
-    
     const newState: GameState = {
       ...initialState,
-      phase: "home",
+      phase: "world_map",
       selectedCharacter: character,
       budget: character.startingBudget,
       energy: character.startingEnergy,
       maxEnergy: character.startingEnergy,
+    };
+    setState(newState);
+    save(newState);
+  }, [save]);
+
+  const startFromCity = useCallback((destId: string) => {
+    const dest = DESTINATIONS.find((d) => d.id === destId);
+    if (!dest || !state.selectedCharacter) return;
+    const shuffledPeople = [...dest.people].sort(() => Math.random() - 0.5);
+    const availableLocals = shuffledPeople.slice(0, Math.min(2, shuffledPeople.length));
+    const newState: GameState = {
+      ...initialState,
+      phase: "home",
+      selectedCharacter: state.selectedCharacter,
+      budget: state.selectedCharacter.startingBudget,
+      energy: state.selectedCharacter.startingEnergy,
+      maxEnergy: state.selectedCharacter.startingEnergy,
       currentDestination: { ...dest, people: availableLocals },
       visitedDestinations: [dest.id],
       destinationVisitCounts: { [dest.id]: 1 },
     };
     setState(newState);
     save(newState);
-  }, [save]);
+  }, [state.selectedCharacter, save]);
 
   const arriveAtDestination = useCallback(
     (dest: Destination) => {
@@ -848,7 +870,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             pendingTravelMemory: true,
             travelMemoryTitle: state.activeOpportunity.title,
             travelMemoryDescription: state.activeOpportunity.description,
-            travelMemoryImageUri: state.currentDestination?.image as string || state.currentDestination?.image?.uri || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
+            travelMemoryImageUri: state.currentDestination?.image as string || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
+            memories: [
+              ...state.memories,
+              {
+                title: state.activeOpportunity.title,
+                description: state.activeOpportunity.description,
+                destName: state.currentDestination?.name ?? "",
+                imageUri: state.currentDestination?.image as string || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
+              },
+            ],
           }
         : {}),
     });
@@ -1156,12 +1187,52 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     updateState({ travelMemory: null, phase: "exploring" });
   }, [updateState]);
 
+  const LIFETIME_KEY = "@pixel_wanderer_lifetime";
+
+  const saveLifetimeData = useCallback(async () => {
+    try {
+      const existingRaw = await AsyncStorage.getItem(LIFETIME_KEY);
+      const existing = existingRaw ? JSON.parse(existingRaw) : { memories: [], friends: [], gamesPlayed: 0, bestScore: 0 };
+      // Merge memories (deduplicate by title)
+      const existingTitles = new Set(existing.memories.map((m: any) => m.title));
+      const newMemories = state.memories.filter((m) => !existingTitles.has(m.title));
+      // Collect familiar friends (familiarity >= 1)
+      const newFriends: any[] = [];
+      DESTINATIONS.forEach((dest) => {
+        dest.people.forEach((person) => {
+          const key = `${dest.id}_${person.id}`;
+          const fam = state.familiarity[key] || 0;
+          if (fam >= 1) {
+            const alreadyIn = existing.friends.some((f: any) => f.name === person.name && f.destName === dest.name);
+            if (!alreadyIn) {
+              newFriends.push({ name: person.name, sprite: person.sprite, destName: dest.name, familiarity: fam });
+            } else {
+              // Update familiarity if higher
+              existing.friends = existing.friends.map((f: any) =>
+                f.name === person.name && f.destName === dest.name ? { ...f, familiarity: Math.max(f.familiarity, fam) } : f
+              );
+            }
+          }
+        });
+      });
+      const finalReputation = calculateReputation();
+      const merged = {
+        memories: [...existing.memories, ...newMemories].slice(-50),
+        friends: [...existing.friends, ...newFriends],
+        gamesPlayed: existing.gamesPlayed + 1,
+        bestScore: Math.max(existing.bestScore, finalReputation),
+      };
+      await AsyncStorage.setItem(LIFETIME_KEY, JSON.stringify(merged));
+    } catch {}
+  }, [state.memories, state.familiarity, calculateReputation]);
+
   return (
     <GameContext.Provider
       value={{
         state,
         startGame,
         selectCharacter,
+        startFromCity,
         arriveAtDestination,
         payLodging,
         haveMeal,
@@ -1192,6 +1263,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         triggerActionBarAnimation,
         dismissMealReward,
         dismissTravelMemory,
+        saveLifetimeData,
       }}
     >
       {children}
