@@ -167,7 +167,7 @@ export function CharacterSelectScreen() {
         )}
 
         <PixelButton onPress={() => setPhase("title")} variant="ghost">
-          BACK TO TITLE
+          BACK
         </PixelButton>
       </ScrollView>
     </View>

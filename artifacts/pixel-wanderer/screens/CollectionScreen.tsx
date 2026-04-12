@@ -25,7 +25,7 @@ export function CollectionScreen() {
 
   const friends = useMemo(
     () => {
-      const highFamiliarityThreshold = 5;
+      const closeFriendThreshold = 3;
       const friendList: Array<{
         name: string;
         sprite: string;
@@ -37,7 +37,7 @@ export function CollectionScreen() {
         dest.people.forEach((person) => {
           const familiarityKey = `${dest.id}_${person.id}`;
           const familiarity = state.familiarity[familiarityKey] || 0;
-          if (familiarity >= highFamiliarityThreshold) {
+          if (familiarity >= closeFriendThreshold) {
             friendList.push({
               name: person.name,
               sprite: person.sprite,
@@ -83,6 +83,10 @@ export function CollectionScreen() {
 
     return meals;
   }, [state.collectedMeals]);
+
+  const scenicSpots = useMemo(() => {
+    return state.collectedScenicSpots;
+  }, [state.collectedScenicSpots]);
 
   // Group all collectibles by theme
   const collectiblesByTheme = useMemo(() => {
@@ -189,7 +193,7 @@ export function CollectionScreen() {
               {tipMemories.map(({ action, destinationName, npcName }) => (
                 <Pressable
                   key={action.id}
-                  onPress={() => viewImage(action.rewardImageUri, action.collectibleName)}
+                  onPress={() => viewImage(action.rewardImageUri, action.collectibleName, `Tip from ${destinationName}`)}
                 >
                   <View
                     style={[
@@ -294,7 +298,7 @@ export function CollectionScreen() {
               {collectedMeals.map((meal) => (
                 <Pressable
                   key={meal.name}
-                  onPress={() => viewImage(meal.imageUri, meal.name)}
+                  onPress={() => viewImage(meal.imageUri, meal.name, meal.country)}
                 >
                   <View
                     style={[
@@ -319,6 +323,48 @@ export function CollectionScreen() {
           ) : (
             <PixelText size="xs" color={colors.mutedForeground} align="center">
               No meals yet. Have a meal to collect local dishes!
+            </PixelText>
+          )}
+        </View>
+
+        {/* Section 3.5: Scenic Spots */}
+        <View style={styles.section}>
+          <PixelText size="xs" color={colors.gold} bold>
+            SCENIC SPOTS ({scenicSpots.length})
+          </PixelText>
+          <PixelText size="xs" color={colors.mutedForeground}>
+            Beautiful views you've captured.
+          </PixelText>
+          {scenicSpots.length > 0 ? (
+            <View style={styles.tipGrid}>
+              {scenicSpots.map((spot) => (
+                <Pressable
+                  key={spot.name}
+                  onPress={() => viewImage(spot.imageUri, spot.name, spot.origin)}
+                >
+                  <View
+                    style={[
+                      styles.tipCard,
+                      {
+                        backgroundColor: colors.navyLight,
+                        borderColor: colors.teal,
+                      },
+                    ]}
+                  >
+                    <View style={styles.tipImageWrap}>
+                      <PixelatedImage
+                        source={{ uri: spot.imageUri }}
+                        pixelBlock={8}
+                        rounded
+                      />
+                    </View>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <PixelText size="xs" color={colors.mutedForeground} align="center">
+              No scenic spots yet. Complete scenic opportunities to capture views!
             </PixelText>
           )}
         </View>
@@ -354,7 +400,7 @@ export function CollectionScreen() {
                     {friend.destinationName}
                   </PixelText>
                   <PixelText size="xs" color={colors.teal} align="center">
-                    Familiarity: {friend.familiarity}/10
+                    Familiarity: {friend.familiarity}/5
                   </PixelText>
                 </View>
               ))}

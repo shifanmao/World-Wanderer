@@ -26,7 +26,10 @@ const CITY_POSITIONS: Record<string, { x: number; y: number }> = {
   santorini:     { x: 56, y: 33 },
   marrakech:     { x: 44, y: 46 },
   cairo:         { x: 62, y: 43 },
+  istanbul:      { x: 60, y: 35 },
+  cape_town:     { x: 58, y: 78 },
   macchu_picchu: { x: 25, y: 65 },
+  buenos_aires:  { x: 30, y: 75 },
   tokyo:         { x: 90, y: 29 },
   kyoto:         { x: 85, y: 39 },
 };

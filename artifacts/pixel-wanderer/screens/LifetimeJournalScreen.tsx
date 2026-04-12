@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -22,27 +24,54 @@ interface LifetimeData {
     destName: string;
   }>;
   friends: Array<{
+    key: string;
     name: string;
     sprite: string;
     destName: string;
     familiarity: number;
   }>;
+  friendFrequency: Record<string, number>;
   gamesPlayed: number;
   bestScore: number;
+  cityVisitCounts: Record<string, number>;
+  dishCounts: Record<string, number>;
+  dishes: Array<{
+    name: string;
+    imageUri: string;
+    origin: string;
+  }>;
+  scenicSpots: Array<{
+    name: string;
+    imageUri: string;
+    origin: string;
+  }>;
 }
 
 const EMPTY: LifetimeData = {
   memories: [],
   friends: [],
+  friendFrequency: {},
   gamesPlayed: 0,
   bestScore: 0,
+  cityVisitCounts: {},
+  dishCounts: {},
+  dishes: [],
+  scenicSpots: [],
 };
 
 export function LifetimeJournalScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { setPhase } = useGame();
+  const { setPhase, viewImage, clearLifetimeData } = useGame();
   const [data, setData] = useState<LifetimeData | null>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  const formatCityName = (cityId: string): string => {
+    return cityId
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   const topPad = Platform.OS === "web" ? insets.top + 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -127,45 +156,98 @@ export function LifetimeJournalScreen() {
           </View>
         )}
 
-        {data.friends.length > 0 && (
+        {Object.keys(data.cityVisitCounts).length > 0 && (
           <View style={styles.section}>
             <PixelText size="xs" color={colors.gold} bold>
-              FAMILIAR FRIENDS ({data.friends.length})
+              CITY VISITS
             </PixelText>
             <View style={[styles.sectionCard, { backgroundColor: colors.navyLight, borderColor: colors.teal }]}>
-              {data.friends.map((friend, i) => (
+              {Object.entries(data.cityVisitCounts)
+                .sort(([, a], [, b]) => b - a)
+                .map(([cityId, count]) => (
                 <View
-                  key={`${friend.name}-${i}`}
+                  key={cityId}
                   style={[
-                    styles.friendRow,
-                    i < data.friends.length - 1 && {
+                    styles.statRow,
+                    {
                       borderBottomWidth: 1,
                       borderBottomColor: colors.border,
                     },
                   ]}
                 >
-                  <PixelText size="lg">{friend.sprite}</PixelText>
-                  <View style={styles.friendInfo}>
-                    <PixelText size="sm" color={colors.parchment} bold>
-                      {friend.name}
-                    </PixelText>
+                  <PixelText size="sm" color={colors.parchment}>
+                    {formatCityName(cityId)}
+                  </PixelText>
+                  <PixelText size="sm" color={colors.teal} bold>
+                    {count}x
+                  </PixelText>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {Object.keys(data.dishCounts).length > 0 && (
+          <View style={styles.section}>
+            <PixelText size="xs" color={colors.gold} bold>
+              DISHES TASTED
+            </PixelText>
+            <View style={[styles.sectionCard, { backgroundColor: colors.navyLight, borderColor: colors.teal }]}>
+              {Object.entries(data.dishCounts)
+                .sort(([, a], [, b]) => b - a)
+                .map(([dish, count]) => (
+                <View
+                  key={dish}
+                  style={[
+                    styles.statRow,
+                    {
+                      borderBottomWidth: 1,
+                      borderBottomColor: colors.border,
+                    },
+                  ]}
+                >
+                  <PixelText size="sm" color={colors.parchment}>
+                    {dish}
+                  </PixelText>
+                  <PixelText size="sm" color={colors.teal} bold>
+                    {count}x
+                  </PixelText>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {data.friends.length > 0 && (
+          <View style={styles.section}>
+            <PixelText size="xs" color={colors.gold} bold>
+              CLOSE FRIENDS
+            </PixelText>
+            <View style={[styles.sectionCard, { backgroundColor: colors.navyLight, borderColor: colors.teal }]}>
+              {data.friends
+                .filter(f => f.familiarity >= 3)
+                .sort((a, b) => (data.friendFrequency[b.key] || 0) - (data.friendFrequency[a.key] || 0))
+                .map((friend, i) => (
+                <View
+                  key={`${friend.key}-${i}`}
+                  style={[
+                    styles.statRow,
+                    {
+                      borderBottomWidth: 1,
+                      borderBottomColor: colors.border,
+                    },
+                  ]}
+                >
+                  <PixelText size="sm" color={colors.parchment}>
+                    {friend.sprite} {friend.name}
+                  </PixelText>
+                  <View style={styles.friendMeta}>
                     <PixelText size="xs" color={colors.mutedForeground}>
                       {friend.destName}
                     </PixelText>
-                  </View>
-                  <View style={styles.familiarityDots}>
-                    {Array.from({ length: Math.min(friend.familiarity, 5) }).map((_, j) => (
-                      <View
-                        key={j}
-                        style={[styles.dot, { backgroundColor: colors.gold }]}
-                      />
-                    ))}
-                    {Array.from({ length: Math.max(0, 5 - friend.familiarity) }).map((_, j) => (
-                      <View
-                        key={`empty-${j}`}
-                        style={[styles.dot, { backgroundColor: colors.border }]}
-                      />
-                    ))}
+                    <PixelText size="xs" color={colors.teal} bold>
+                      {data.friendFrequency[friend.key] || 0}x
+                    </PixelText>
                   </View>
                 </View>
               ))}
@@ -175,7 +257,7 @@ export function LifetimeJournalScreen() {
 
         {data.memories.length > 0 && (
           <View style={styles.section}>
-            <PixelText size="xs" color={colors.teal} bold>
+            <PixelText size="xs" color={colors.gold} bold>
               TRAVEL MEMORIES ({data.memories.length})
             </PixelText>
             {data.memories.map((memory, i) => (
@@ -205,7 +287,49 @@ export function LifetimeJournalScreen() {
         <PixelButton onPress={() => setPhase("title")} variant="ghost">
           BACK TO TITLE
         </PixelButton>
+        <PixelButton onPress={() => setShowResetConfirm(true)} variant="danger">
+          RESET LIFETIME DATA
+        </PixelButton>
       </ScrollView>
+
+      {/* Reset Confirmation Modal */}
+      <Modal
+        visible={showResetConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowResetConfirm(false)}
+      >
+        <View style={[styles.modalOverlay, { backgroundColor: colors.navy + "cc" }]}>
+          <View style={[styles.modalContent, { backgroundColor: colors.navyLight, borderColor: colors.gold }]}>
+            <PixelText size="lg" color={colors.gold} bold align="center">
+              ⚠️ Reset Lifetime Data?
+            </PixelText>
+            <PixelText size="sm" color={colors.parchment} align="center" style={styles.modalMessage}>
+              Are you sure you want to delete all your lifetime travel history? This cannot be undone.
+            </PixelText>
+            <View style={styles.modalButtons}>
+              <PixelButton
+                onPress={() => setShowResetConfirm(false)}
+                variant="ghost"
+                style={styles.modalButton}
+              >
+                CANCEL
+              </PixelButton>
+              <PixelButton
+                onPress={() => {
+                  clearLifetimeData();
+                  setData(EMPTY);
+                  setShowResetConfirm(false);
+                }}
+                variant="danger"
+                style={styles.modalButton}
+              >
+                RESET
+              </PixelButton>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -255,6 +379,16 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     overflow: "hidden",
   },
+  statRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 12,
+  },
+  friendMeta: {
+    alignItems: "flex-end",
+    gap: 2,
+  },
   friendRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -280,5 +414,29 @@ const styles = StyleSheet.create({
   },
   memoryHeader: {
     gap: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    borderWidth: 3,
+    padding: 24,
+    gap: 16,
+    alignItems: "center",
+    width: "80%",
+    maxWidth: 400,
+  },
+  modalMessage: {
+    textAlign: "center",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+  modalButton: {
+    flex: 1,
   },
 });

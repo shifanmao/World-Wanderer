@@ -6,6 +6,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { PixelText } from "@/components/PixelText";
@@ -16,7 +17,7 @@ import { useGame } from "@/context/GameContext";
 export function GameOverScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { state, resetGame, calculateReputation, loadHighScore, saveLifetimeData } = useGame();
+  const { state, resetGame, saveLifetimeData } = useGame();
 
   const [highScore, setHighScore] = useState(0);
   const [finalReputation, setFinalReputation] = useState(0);
@@ -33,17 +34,19 @@ export function GameOverScreen() {
       useNativeDriver: true,
     }).start();
 
-    // Calculate final reputation and load high score
-    const reputation = calculateReputation();
-    setFinalReputation(reputation);
+    // Use state.reputation directly to match in-game reputation
+    setFinalReputation(state.reputation);
 
-    loadHighScore().then((score) => {
-      setHighScore(score);
+    // Load lifetime best score from AsyncStorage and calculate new high score
+    AsyncStorage.getItem("@pixel_wanderer_lifetime").then((data) => {
+      const lifetimeBestScore = data ? JSON.parse(data).bestScore || 0 : 0;
+      // High score is the max of lifetime best and current reputation
+      setHighScore(Math.max(lifetimeBestScore, state.reputation));
     });
 
     // Save lifetime journal data
     saveLifetimeData();
-  }, [calculateReputation, loadHighScore]);
+  }, [state.reputation, saveLifetimeData]);
 
   const spent = STARTING_BUDGET - state.budget;
   const completion = Math.round(

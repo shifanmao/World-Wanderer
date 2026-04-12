@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useMemo } from "react";
 import {
   Animated,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -183,7 +184,7 @@ export function ExploreScreen() {
               {localTipMemories.map(({ action }) => (
                 <Pressable
                   key={action.id}
-                  onPress={() => viewImage(action.rewardImageUri, action.collectibleName)}
+                  onPress={() => viewImage(action.rewardImageUri, action.collectibleName, `Tip from ${dest.name}`)}
                 >
                   <View
                     style={[
@@ -273,8 +274,9 @@ export function ExploreScreen() {
         {dest.people.map((character, index) => {
           const familiarityKey = `${dest.id}_${character.id}`;
           const familiarity = state.familiarity[familiarityKey] || 0;
-          const energyCost = character.energyCost || 10;
+          const energyCost = character.energyCost || 5;
           const canTalk = actionCount < 5 && state.energy >= energyCost;
+          const isCloseFriend = state.closeFriends.includes(familiarityKey);
 
           return (
             <View
@@ -283,14 +285,14 @@ export function ExploreScreen() {
                 styles.characterCard,
                 {
                   backgroundColor: colors.navyLight,
-                  borderColor: colors.border,
+                  borderColor: isCloseFriend ? colors.gold : colors.border,
                 },
               ]}
             >
               <View
                 style={[
                   styles.characterSprite,
-                  { backgroundColor: colors.navy, borderColor: colors.teal },
+                  { backgroundColor: colors.navy, borderColor: isCloseFriend ? colors.gold : colors.teal },
                 ]}
               >
                 <PixelText size="xl" align="center">
@@ -299,14 +301,14 @@ export function ExploreScreen() {
               </View>
               <View style={styles.characterInfo}>
                 <PixelText size="sm" color={colors.parchment} bold>
-                  {character.name}
+                  {character.name} {isCloseFriend && "❤️"}
                 </PixelText>
                 <PixelText size="xs" color={colors.mutedForeground}>
                   {character.dialogues[0].slice(0, 45)}...
                 </PixelText>
                 <View style={styles.familiarityRow}>
                   <PixelText size="xs" color={colors.teal}>
-                    Familiarity: {familiarity}/10
+                    Familiarity: {familiarity}/5
                   </PixelText>
                 </View>
                 {character.earningOnTalk && (
@@ -327,18 +329,11 @@ export function ExploreScreen() {
           );
         })}
 
-        {/* Actions */}
-        <View style={styles.sectionHeader}>
-          <PixelText size="xs" color={colors.gold} bold>
-            ACTIONS
-          </PixelText>
-        </View>
-
         <View style={styles.buttonRow}>
           <PixelButton
             onPress={() => haveMeal()}
             variant={state.budget >= 15 ? "secondary" : "ghost"}
-            disabled={state.budget < 15}
+            disabled={state.budget < 15 || actionCount >= 5}
             style={{ flex: 1 }}
           >
             {state.budget >= 15 ? "🍽️ HAVE MEAL ($15, +10⚡)" : "🍽️ MEAL ($15)"}
@@ -346,11 +341,11 @@ export function ExploreScreen() {
           <PixelButton
             onPress={() => payLodging()}
             variant={canAffordLodging ? "secondary" : "ghost"}
-            disabled={!canAffordLodging}
+            disabled={!canAffordLodging || actionCount >= 5}
             style={{ flex: 1 }}
           >
             {canAffordLodging
-              ? `🏨 REST ($${dest.lodgingCost}, +20⚡)`
+              ? `🏨 REST ($${dest.lodgingCost}, FULL⚡)`
               : `🏨 REST ($${dest.lodgingCost})`}
           </PixelButton>
         </View>
@@ -497,6 +492,25 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 4,
     overflow: "hidden",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    borderWidth: 3,
+    padding: 24,
+    gap: 16,
+    alignItems: "center",
+    width: "80%",
+    maxWidth: 400,
+  },
+  modalMessage: {
+    textAlign: "center",
+  },
+  modalButton: {
+    minWidth: 150,
   },
   earnedToast: {
     position: "absolute",

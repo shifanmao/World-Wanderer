@@ -20,6 +20,8 @@ import { MealScreen } from "@/screens/MealScreen";
 import { HotelScreen } from "@/screens/HotelScreen";
 import { TravelMemoryScreen } from "@/screens/TravelMemoryScreen";
 import { ThankYouScreen } from "@/screens/ThankYouScreen";
+import { LetterScreen } from "@/screens/LetterScreen";
+import { InsufficientFundsScreen } from "@/screens/InsufficientFundsScreen";
 import { useColors } from "@/hooks/useColors";
 
 export default function GameScreen() {
@@ -62,6 +64,10 @@ export default function GameScreen() {
         return <TravelMemoryScreen />;
       case "thank_you":
         return <ThankYouScreen />;
+      case "letter":
+        return <LetterScreen />;
+      case "insufficient_funds":
+        return <InsufficientFundsScreen />;
       default:
         return <TitleScreen />;
     }

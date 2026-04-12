@@ -31,6 +31,9 @@ export function ImageViewerScreen() {
           <PixelText size="lg" color={colors.gold} bold align="center" shadow>
             {image.title}
           </PixelText>
+          <PixelText size="xs" color={colors.teal} align="center">
+            {image.origins}
+          </PixelText>
           
           <View style={[styles.imageContainer, { borderColor: colors.teal }]}>
             <Image
